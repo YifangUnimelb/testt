@@ -1,6 +1,6 @@
 ---
-title: "Forecasting Inflation and Interest Rate in Australia"
-author: "Yifang"
+title: "Title of your work"
+author: "Your Name"
 
 execute:
   echo: false
@@ -8,242 +8,76 @@ execute:
 bibliography: references.bib
 ---
 
-> **Abstract.** This paper forecasts Australian inflation and interest rate using Bayesian Vector Regressive Model with Stochastic Volatility and a multivariate-t distributed error, with the purpose of allowing time varying volatility and capturing sudden increase in volatility during extreme period such as COVID-19.It is an application of such method, which is suggested as a significant improvement over a standard BVAR, to the Australian macroeconomic variables to generate spot and density forecast using post-COVID data.
-
-> **Keywords.** BVARs, Stochastic Volatility, t-distributed error, inflation, interest rate, Australian economy
+> **Abstract.** This is a suggested formatting for your abstract. This **quarto** document is a template for your report. It includes some basic ways of working with such documents. You are invited to learn more about developing online reports with this technology. 
+>
+> **Keywords.** bsvars, impulse responses, quarto, R, tax shocks
 
 # Introduction
 
-**Objective:** This paper aims to forecast Australian short term interest rate and inflation. It follows the method in Hartwig(2022), using a BVAR-SV model with its error covariance matrix being multivariate-t distribution.
+This is a template repository for the Research Report for **Macroeconometrics**. Learn more about about developing online reports with **quarto** at [quarto.org](https://quarto.org/).
 
-**Question:** Can the model suggested produce reliable spot and density forecast for Australian inflation and interest rate?
+## A Simple Example
 
-**Motivation:** Volatility variation across time in macroeconomic variables is widely explored in literature(Bloom,2014), which the standard Gaussian error modeling may fail to capture and then leads to unreliable results. Hartwig(2022) suggests that several BVAR models with modified volatility distribution which differentiate from the standard Gaussian perform better under likelihood measurement. The best fitting one with post-COVID19 data is BVAR-t-SV. The stochastic process captures the time persistence of volatility, which is evident in variables such as short term interest rate(Ball and Torous,1999). A multivariate-t distributed error, with relatively fatter tails, can recognize some extreme volatility as temporary spikes instead of persistent effect. The forecast focus on inflation and interest rate due to their strong relevance to policy making and people's daily lives. Many challenges arise post-COVID for government to facilitate the revitalization of the economy, where forecast plays its roles.
+This is a Quarto document in which we can cite the **bsvars** package by @wozniakBsvarsBayesianEstimation2022. Look for more info at [package CRAN website](https://cran.r-project.org/package=bsvars).
 
-# Data
-
-All data is obtained from the RBA. Daily or monthly data is converted to quarterly format by averaging. Following Chan(2017, other than cash rate and unemployment, variables will be transformed using log difference times 400 in BVAR. These are some standard variables to include in a macroeconomics forecast:
-
-**Cash rate:** the cash rate target in percent (series_id:FIRMMCRTD)
-
-**Money aggregate(M1):** the seasonal adjusted M1 aggregate in \$billion (series_id:DMAM1S)
-
-**Money aggregate(M3):** the seasonal adjusted M3 aggregate in \$billion (series_id:DMAM3S)
-
-**Consumer Price Index** Consumer Price Index (series_id:GCPIAG)
-
-**Real GDP:** Gross Domestic Product in real terms in \$million (series_id:GGDPCVGDP)
-
-**Unemployment:** Unemployment rate in percent (series_id:GLFSUPSA)
-
-The data window covers 1990 Q1 to 2023 Q4, as the most up-to-date post-COVID data in Australia, similar to Hartwig(2022).
-
-```{r obtain data}
-#| echo: false
-#| message: false
-#| warning: false
-
-install.packages("readrba")
-library(readrba)
-
-un_em = read_rba(series_id = "GLFSURSA") 
-gdp = read_rba(series_id = "GGDPCVGDP")
-cpi = read_rba(series_id = "GCPIAG") 
-
-cr = read_rba(series_id = "FIRMMCRTD")
-
-m1 = read_rba(series_id = "DMAM1S") 
-m3 = read_rba(series_id = "DMAM3S") 
-
-library(dplyr)
-library(lubridate)
-
-cpi <- cpi %>% filter(date > as.Date("1989-12-31"))
-gdp <- gdp %>% filter(date > as.Date("1989-12-31"))
-m1 <- m1 %>% filter(date > as.Date("1989-12-31"))
-m3 <- m3 %>% filter(date > as.Date("1989-12-31"))
-un_em <- un_em %>% filter(date > as.Date("1989-12-31"))
-
-cpi <- cpi %>% filter(date < as.Date("2024-01-01"))
-gdp <- gdp %>% filter(date < as.Date("2024-01-01"))
-m1 <- m1 %>% filter(date < as.Date("2024-01-01"))
-m3 <- m3 %>% filter(date < as.Date("2024-01-01"))
-un_em <- un_em %>% filter(date < as.Date("2024-01-01"))
-
-m1 <- m1 %>%
-  mutate(Quarter = paste(year(date), quarter(date), sep = "Q")) %>%
-  group_by(Quarter) %>%
-  summarize(Average = mean(value, na.rm = TRUE))
-
-m3 <- m3 %>%
-  mutate(Quarter = paste(year(date), quarter(date), sep = "Q")) %>%
-  group_by(Quarter) %>%
-  summarize(Average = mean(value, na.rm = TRUE))
-
-un_em <- un_em %>%
-  mutate(Quarter = paste(year(date), quarter(date), sep = "Q")) %>%
-  group_by(Quarter) %>%
-  summarize(Average = mean(value, na.rm = TRUE))
-
-cr <- cr %>%
-  mutate(Quarter = paste(year(date), quarter(date), sep = "Q")) %>%
-  group_by(Quarter) %>%
-  summarize(Average = mean(value, na.rm = TRUE))
-
-cr <- cr %>% filter(Quarter != "2024Q1")
-
+Simply load the package by running
+```{r package load}
+library(bsvars)
 ```
 
-```{r combine data}
-#| echo: false
+The code below performs simple computations for sampling posterior draws of the impulse responses. The first line uploads the data from the package,another sets the seed for reproducible computations, and then the pipe `|>` is used to streamline the model specification, estimation including the first burn-in run to obtain convergence and finally, the computed impulse responses are saved in object `irf`.
+```{r estimate irf}
 #| message: false
-#| #| warning: false
+#| echo: true
 
-library(dplyr)
-
-# Assuming tibble1, tibble2, tibble3 are your tibbles
-# and you want columnA from tibble1, columnB from tibble2
-data <- bind_cols(
-  cpi %>% select(date),
-  cpi %>% select(value),
-  cr %>% select(Average),
-  gdp %>% select(value),
-  m1 %>% select(Average),
-  m3 %>% select(Average),
-  un_em %>% select(Average)# Add as many as needed
-)
-
-data <- data %>% rename(cpi = value...2, cr = Average...3, gdp = value...4, m1 = Average...5, m3 = Average...6, un_em = Average...7)
-
-data_trans <- data %>%
-  mutate(cpi_log = c(NA, 400*diff(log(cpi))), gdp_log =c(NA, 400*diff(log(gdp))), m1_log =c(NA, 400*diff(log(m1))), m3_log =c(NA, 400*diff(log(m3))))
-
-data_trans <- data_trans %>% select(date, cpi_log, gdp_log, m1_log, m3_log, cr, un_em)
+data(us_fiscal_lsuw)
+set.seed(123)
+us_fiscal_lsuw |>
+  specify_bsvar$new(p = 1) |>
+  estimate(S = 1000, show_progress = FALSE) |> 
+  estimate(S = 2000, show_progress = FALSE) |> 
+  compute_impulse_responses(horizon = 20) -> irf
 ```
 
-## Time Series Plot
+The code above is visible as the **R** chunk contains the setting `#| echo: true`.
 
-```{r fig.width=5, fig.height=5}
-#| echo: false
-#| message: false
-#| warning: false
+@tbl-irf reports the posterior means of the gross domestic product response to an unanticipated tax increase by 1 pp.
+```{r}
+#| label: tbl-irf
+#| tbl-cap: Impulse response of gdp to unanticipated tax increase by 1 pp. within two years
 
-install.packages("patchwork")
-library(ggplot2)
-library(patchwork)
-
-theme_set(theme_bw())
-
-pcpi <- ggplot(data, aes(date,cpi)) + geom_line(size = 0.25)+labs(title = "CPI") +
-  theme(plot.title = element_text(size = 10),
-        axis.title.x = element_text(size = 8),
-        axis.title.y = element_text(size = 8))
-
-pgdp <- ggplot(data, aes(date,gdp)) + geom_line(size = 0.25)+labs(title = "GDP") +
-  theme(plot.title = element_text(size = 10),
-        axis.title.x = element_text(size = 8),
-        axis.title.y = element_text(size = 8))
-
-
-pm1 <- ggplot(data, aes(date,m1)) +geom_line(size = 0.25)+labs(title = "M1") +
-  theme(plot.title = element_text(size = 10),
-        axis.title.x = element_text(size = 8),
-        axis.title.y = element_text(size = 8))
-
-pm3 <- ggplot(data, aes(date,m3)) + geom_line(size = 0.25)+labs(title = "M3") +
-  theme(plot.title = element_text(size = 10),
-        axis.title.x = element_text(size = 8),
-        axis.title.y = element_text(size = 8))
-
-pcr <- ggplot(data, aes(date,cr)) + geom_line(size = 0.25)+labs(title = "cash rate") +
-  theme(plot.title = element_text(size = 10),
-        axis.title.x = element_text(size = 8),
-        axis.title.y = element_text(size = 8))
-
-pun_em <- ggplot(data, aes(date,un_em)) + geom_line(size = 0.25)+labs(title = "unemployment rate") +
-  theme(plot.title = element_text(size = 10),
-        axis.title.x = element_text(size = 8),
-        axis.title.y = element_text(size = 8))
-
- 
-(pcpi + pgdp )/(pm1 + pm3 )/(pcr + pun_em)
-
+irf_gdp_tax = matrix(apply(irf[3,1,1:9,],1, mean), nrow = 1)
+rownames(irf_gdp_tax) = "change in gdp [%]"
+colnames(irf_gdp_tax) = 0:8
+knitr::kable(irf_gdp_tax, digits = 3)
 ```
 
-```{r fig.width=5, fig.height=3.5}
-#| echo: false
-#| message: false
-#| warning: false
+@fig-irf presents the same reaction over the horizon of five years.
+```{r}
+#| label: fig-irf
+#| fig-cap: Impulse response of gdp to unanticipated tax increase by 1 pp. within five years
 
-install.packages("patchwork")
-library(ggplot2)
-library(patchwork)
-
-theme_set(theme_bw())
-
-pcpil <- ggplot(data_trans, aes(date,cpi_log)) + geom_line(size = 0.25)+labs(title = "log difference CPI") +
-  theme(plot.title = element_text(size = 10),
-        axis.title.x = element_text(size = 8),
-        axis.title.y = element_text(size = 8))
-
-pgdpl <- ggplot(data_trans, aes(date,gdp_log)) + geom_line(size = 0.25)+labs(title = "log difference GDP") +
-  theme(plot.title = element_text(size = 10),
-        axis.title.x = element_text(size = 8),
-        axis.title.y = element_text(size = 8))
-
-
-pm1l <- ggplot(data_trans, aes(date,m1_log)) +geom_line(size = 0.25)+labs(title = "log difference M1") +
-  theme(plot.title = element_text(size = 10),
-        axis.title.x = element_text(size = 8),
-        axis.title.y = element_text(size = 8))
-
-pm3l <- ggplot(data_trans, aes(date,m3_log)) + geom_line(size = 0.25)+labs(title = "log difference M3") +
-  theme(plot.title = element_text(size = 10),
-        axis.title.x = element_text(size = 8),
-        axis.title.y = element_text(size = 8))
- 
-(pcpil + pgdpl )/(pm1l + pm3l )
-
+irf_median    = apply(irf[3,1,,],1, median)
+irf_hdi       = apply(irf[3,1,,],1, HDInterval::hdi, credMass = .68)
+plot(x = 0:20, y = irf_median, type = "l", bty = "n", 
+     xlab = "horizon", ylab = "change in gdp [%]",
+     ylim = range(irf_hdi))
+polygon(x = c(0:20, 20:0), y = c(irf_hdi[1,], irf_hdi[2,21:1]), col = "deepskyblue1", border = "deepskyblue1")
+lines(x = 0:20, y = irf_median, lwd = 2, col = "deepskyblue3")
 ```
 
-## ACF and PACF
+## Some Hints
 
-```{r ACF}
-#| echo: false
-#| message: false
-#| warning: false
+Have a look at how to work with **RStudio** and **GitHub** at: [How to use git and GitHub with R](https://rfortherestofus.com/2021/02/how-to-use-git-github-with-r/). 
 
-library(tidyr)
+These are many different ways of how to work with references in **RStudio**: [Preview Citations](https://posit.co/blog/rstudio-1-4-preview-citations/).
 
-data_trans <- drop_na(data_trans)
-
-acf(data_trans$cpi_log)
-acf(data_trans$gdp_log)
-acf(data_trans$m1_log)
-acf(data_trans$m3_log)
-acf(data_trans$cr)
-acf(data_trans$un_em)
-
+To make all the **R** code visible on the website change the settings in the preabmble of this document to:
 ```
-
-```{r PACF}
-#| echo: false
-#| message: false
-#| warning: false
-
-library(tidyr)
-
-data_trans <- drop_na(data_trans)
-
-pacf(data_trans$cpi_log)
-pacf(data_trans$gdp_log)
-pacf(data_trans$m1_log)
-pacf(data_trans$m3_log)
-pacf(data_trans$cr)
-pacf(data_trans$un_em)
-
-
+execute:
+  echo: true
 ```
+<<<<<<< HEAD
 
 ## Augmented Dickey-Fuller
 
@@ -295,3 +129,6 @@ where $\lambda_t \sim IG(\nu/2,\nu/2)$ and $h_t$ follows: $h_t = \rho h_{t-1}+ \
 ## Bayesian 
 
 # References {.unnumbered}
+=======
+## References {.unnumbered}
+>>>>>>> parent of ac9f991 (all)
