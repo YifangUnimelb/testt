@@ -11,7 +11,7 @@
     "href": "index.html#time-series-plot",
     "title": "Forecasting Inflation and Interest Rate in Australia",
     "section": "Time Series Plot",
-    "text": "Time Series Plot\nThe following are the time series plot of raw CPI, real GDP, M1 and M3 monetary aggregate, unemployment rate and cash rate on quarterly basis. Note the former 4 variables all display a clear growth trend. Unemployment and cash rate are generally decreasing with noticable fluctuations.\n\n\n\n\n\nThe 400 times log difference of CPI, real GDP, M1 and M3 aggregate were plotted here. They seem stationary around a fixed mean. This will be tested later."
+    "text": "Time Series Plot\nThe following are the time series plot of raw CPI, real GDP, M1 and M3 monetary aggregate, unemployment rate and cash rate on quarterly basis. Note the former 4 variables all display a clear growth trend. Unemployment and cash rate are generally decreasing with fluctuations.\n\n\n\n\n\nThe 400 times log difference of CPI, real GDP, M1 and M3 aggregate were plotted here. They seem stationary around a fixed mean. This will be tested later."
   },
   {
     "objectID": "index.html#acf-and-pacf",

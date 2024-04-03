@@ -124,7 +124,7 @@ data_trans <- data_trans %>% select(date, cpi_log, gdp_log, m1_log, m3_log, cr, 
 
 ## Time Series Plot
 
-The following are the time series plot of raw CPI, real GDP, M1 and M3 monetary aggregate, unemployment rate and cash rate on quarterly basis. Note the former 4 variables all display a clear growth trend. Unemployment and cash rate are generally decreasing with noticable fluctuations.
+The following are the time series plot of raw CPI, real GDP, M1 and M3 monetary aggregate, unemployment rate and cash rate on quarterly basis. Note the former 4 variables all display a clear growth trend. Unemployment and cash rate are generally decreasing with fluctuations.
 
 ```{r times series raw}
 #| echo: false
@@ -173,6 +173,7 @@ pun_em <- ggplot(data, aes(date,un_em)) + geom_line(size = 0.25)+labs(title = "u
 ```
 
 The 400 times log difference of CPI, real GDP, M1 and M3 aggregate were plotted here. They seem stationary around a fixed mean. This will be tested later.
+
 ```{r time series log}
 #| echo: false
 #| message: false
@@ -219,6 +220,8 @@ library(tidyr)
 
 data_trans <- drop_na(data_trans)
 
+par(mfrow=c(2,3))
+
 acf(data_trans$cpi_log)
 acf(data_trans$gdp_log)
 acf(data_trans$m1_log)
@@ -235,7 +238,7 @@ acf(data_trans$un_em)
 
 library(tidyr)
 
-data_trans <- drop_na(data_trans)
+par(mfrow=c(2,3))
 
 pacf(data_trans$cpi_log)
 pacf(data_trans$gdp_log)
