@@ -105,9 +105,8 @@ ul.task-list li input[type="checkbox"] {
   </ul></li>
   <li><a href="#model" id="toc-model" class="nav-link" data-scroll-target="#model">Model</a>
   <ul class="collapse">
-  <li><a href="#bayesian-estimation" id="toc-bayesian-estimation" class="nav-link" data-scroll-target="#bayesian-estimation">Bayesian Estimation</a></li>
-  </ul></li>
   <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -151,21 +150,23 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="data" class="level1">
 <h1>Data</h1>
-<p>All data is obtained from the RBA. Daily or monthly data is converted to quarterly format by averaging. Following Chan(2017, other than cash rate and unemployment, variables will be transformed using log difference times 400 in BVAR. These are some standard variables to include in a macroeconomics forecast:</p>
+<p>All data is obtained from the RBA. Daily or monthly data is converted to quarterly format by averaging. Following Chan(2020), other than cash rate and unemployment, variables will be transformed using log difference times 400 in BVAR as a form of growth. These are some standard variables to include in a macroeconomics forecast:</p>
 <p><strong>Cash rate:</strong> the cash rate target in percent (series_id:FIRMMCRTD)</p>
 <p><strong>Money aggregate(M1):</strong> the seasonal adjusted M1 aggregate in $billion (series_id:DMAM1S)</p>
 <p><strong>Money aggregate(M3):</strong> the seasonal adjusted M3 aggregate in $billion (series_id:DMAM3S)</p>
 <p><strong>Consumer Price Index</strong> Consumer Price Index (series_id:GCPIAG)</p>
 <p><strong>Real GDP:</strong> Gross Domestic Product in real terms in $million (series_id:GGDPCVGDP)</p>
 <p><strong>Unemployment:</strong> Unemployment rate in percent (series_id:GLFSUPSA)</p>
-<p>The data window covers 1990 Q1 to 2023 Q4, as the most up-to-date post-COVID data in Australia, similar to Hartwig(2022).</p>
+<p>The data window covers 1990 Q1 to 2023 Q4, as the most up-to-date post-COVID data in Australia, similar to Hartwig(2022). Cash rate, real GDP and unemployment rate are very standard variables to include while doing forecast with inflation as the cyclical variables(eg.Stock and Watson(1999)). Money aggregate as a supply side driver for commodity price, are included as well(eg. Dhakal et al(1994)).</p>
 <section id="time-series-plot" class="level2">
 <h2 class="anchored" data-anchor-id="time-series-plot">Time Series Plot</h2>
+<p>The following are the time series plot of raw CPI, real GDP, M1 and M3 monetary aggregate, unemployment rate and cash rate on quarterly basis. Note the former 4 variables all display a clear growth trend. Unemployment and cash rate are generally decreasing with noticable fluctuations.</p>
 <div class="cell">
 <div class="cell-output-display">
 <p><img src="index_files/figure-html/times series raw-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
+<p>The 400 times log difference of CPI, real GDP, M1 and M3 aggregate were plotted here. They seem stationary around a fixed mean. This will be tested later.</p>
 <div class="cell">
 <div class="cell-output-display">
 <p><img src="index_files/figure-html/time series log-1.png" class="img-fluid" width="672"></p>
@@ -323,14 +324,17 @@ alternative hypothesis: stationary</code></pre>
 <p>In standard form, the error term is normally distributed <span class="math inline">\(\epsilon_t \sim iidN(0, \Sigma)\)</span>, or <span class="math inline">\(E \sim MN(0, \Sigma \otimes I_T)\)</span>. <span class="math inline">\(\Sigma\)</span> is a <span class="math inline">\(n \times n\)</span> covariance matrix and <span class="math inline">\(I_T\)</span> is an <span class="math inline">\(T \times T\)</span> identity matrix. In this paper, following Hartwig(2022), I use the specification:</p>
 <p><span class="math display">\[\epsilon_t \sim N(0, \Sigma \cdot \lambda_t \cdot exp(h_t))\]</span></p>
 <p>where <span class="math inline">\(\lambda_t \sim IG(\nu/2,\nu/2)\)</span> and <span class="math inline">\(h_t\)</span> follows: <span class="math inline">\(h_t = \rho h_{t-1}+ \epsilon^{h}_{t}\)</span>, with <span class="math inline">\(|\rho|&lt; 1\)</span> and <span class="math inline">\(\epsilon^{h}_{t} \sim N(0, \sigma^{2}_h)\)</span>. Then the compact distribution of <span class="math inline">\(E \sim MN(0,\Sigma \otimes \Omega)\)</span>.</p>
-<section id="bayesian-estimation" class="level2">
-<h2 class="anchored" data-anchor-id="bayesian-estimation">Bayesian Estimation</h2>
-</section>
-</section>
-<section id="references" class="level1">
-<h1>References</h1>
+<section id="references" class="level2">
+<h2 class="anchored" data-anchor-id="references">References</h2>
+<p>Ball, C. A., &amp; Torous, W. N. (1999). The Stochastic Volatility of Short-Term Interest Rates: Some International Evidence. <em>The Journal of Finance, 54(6), 2339–2359</em>. http://www.jstor.org/stable/797997</p>
+<p>Bloom, N. (2014). “Fluctuations in Uncertainty.” <em>Journal of Economic Perspectives, 28 (2): 153-76.</em> DOI: 10.1257/jep.28.2.153</p>
+<p>Chan, J. C. C. (2020). Large Bayesian VARs: A Flexible Kronecker Error Covariance Structure. <em>Journal of Business &amp; Economic Statistics, 38(1), 68–79.</em> https://doi.org/10.1080/07350015.2018.1451336</p>
+<p>Hartwig, B(2022). Bayesian Vars and Prior Calibration in Times of COVID-19. <em>Deutsche Bundesbank Discussion Paper No.&nbsp;52/2022</em>. https://dx.doi.org/10.2139/ssrn.4350794</p>
+<p>Stock, H. J., &amp; Watson, W. M. (1999). Forecasting Inflation. <em>Journal of Monetary Economics, 44(2), 293–335</em>. https://doi.org/10.1016/S0304-3932(99)00027-6</p>
+<p>Dhakal, D., &amp; Kandil, M.&amp;Sharma, S,C. &amp;Trescott, P,B. (1994). Determinants of the inflation rate in the United States: A VAR investigation. <em>The Quarterly Review of Economics and Finance 34(1), 95-112</em>. https://doi.org/10.1016/1062-9769(94)90055-8</p>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->

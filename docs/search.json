@@ -11,7 +11,7 @@
     "href": "index.html#time-series-plot",
     "title": "Forecasting Inflation and Interest Rate in Australia",
     "section": "Time Series Plot",
-    "text": "Time Series Plot"
+    "text": "Time Series Plot\nThe following are the time series plot of raw CPI, real GDP, M1 and M3 monetary aggregate, unemployment rate and cash rate on quarterly basis. Note the former 4 variables all display a clear growth trend. Unemployment and cash rate are generally decreasing with noticable fluctuations.\n\n\n\n\n\nThe 400 times log difference of CPI, real GDP, M1 and M3 aggregate were plotted here. They seem stationary around a fixed mean. This will be tested later."
   },
   {
     "objectID": "index.html#acf-and-pacf",
@@ -28,10 +28,10 @@
     "text": "Augmented Dickey-Fuller\n\n\n\n    Augmented Dickey-Fuller Test\n\ndata:  data_trans$cpi_log\nDickey-Fuller = -3.8653, Lag order = 5, p-value = 0.01796\nalternative hypothesis: stationary\n\n\n\n    Augmented Dickey-Fuller Test\n\ndata:  data_trans$gdp_log\nDickey-Fuller = -5.762, Lag order = 5, p-value = 0.01\nalternative hypothesis: stationary\n\n\n\n    Augmented Dickey-Fuller Test\n\ndata:  data_trans$m1_log\nDickey-Fuller = -3.7918, Lag order = 5, p-value = 0.02154\nalternative hypothesis: stationary\n\n\n\n    Augmented Dickey-Fuller Test\n\ndata:  data_trans$m3_log\nDickey-Fuller = -2.9958, Lag order = 5, p-value = 0.1622\nalternative hypothesis: stationary\n\n\n\n    Augmented Dickey-Fuller Test\n\ndata:  data_trans$cr\nDickey-Fuller = -4.3135, Lag order = 5, p-value = 0.01\nalternative hypothesis: stationary\n\n\n\n    Augmented Dickey-Fuller Test\n\ndata:  data_trans$un_em\nDickey-Fuller = -2.4522, Lag order = 5, p-value = 0.3884\nalternative hypothesis: stationary\n\n\n\n\n\nVariable\nADF_stats\np_value\n\n\n\n\nCPI_log\n-3.8653\n0.01796\n\n\nGDP_log\n-5.765\n0.01\n\n\nM1_log\n-3.7918\n0.02154\n\n\nM3_log\n-2.9958\n0.1622\n\n\nCash rate\n-4.3135\n0.01\n\n\nUnemployment\n-2.4522\n0.3884"
   },
   {
-    "objectID": "index.html#bayesian-estimation",
-    "href": "index.html#bayesian-estimation",
+    "objectID": "index.html#references",
+    "href": "index.html#references",
     "title": "Forecasting Inflation and Interest Rate in Australia",
-    "section": "Bayesian Estimation",
-    "text": "Bayesian Estimation"
+    "section": "References",
+    "text": "References\nBall, C. A., & Torous, W. N. (1999). The Stochastic Volatility of Short-Term Interest Rates: Some International Evidence. The Journal of Finance, 54(6), 2339–2359. http://www.jstor.org/stable/797997\nBloom, N. (2014). “Fluctuations in Uncertainty.” Journal of Economic Perspectives, 28 (2): 153-76. DOI: 10.1257/jep.28.2.153\nChan, J. C. C. (2020). Large Bayesian VARs: A Flexible Kronecker Error Covariance Structure. Journal of Business & Economic Statistics, 38(1), 68–79. https://doi.org/10.1080/07350015.2018.1451336\nHartwig, B(2022). Bayesian Vars and Prior Calibration in Times of COVID-19. Deutsche Bundesbank Discussion Paper No. 52/2022. https://dx.doi.org/10.2139/ssrn.4350794\nStock, H. J., & Watson, W. M. (1999). Forecasting Inflation. Journal of Monetary Economics, 44(2), 293–335. https://doi.org/10.1016/S0304-3932(99)00027-6\nDhakal, D., & Kandil, M.&Sharma, S,C. &Trescott, P,B. (1994). Determinants of the inflation rate in the United States: A VAR investigation. The Quarterly Review of Economics and Finance 34(1), 95-112. https://doi.org/10.1016/1062-9769(94)90055-8"
   }
 ]
