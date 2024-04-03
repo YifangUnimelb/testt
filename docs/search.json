@@ -18,14 +18,14 @@
     "href": "index.html#acf-and-pacf",
     "title": "Forecasting Inflation and Interest Rate in Australia",
     "section": "ACF and PACF",
-    "text": "ACF and PACF"
+    "text": "ACF and PACF\nThe following ACF plots of 400 times log difference CPI, real GDP, M1 monetary aggregate show autocorrelation over small number of lags, therefore, likely to be stationary. M3 monetary aggregate, cash rate and unemployment rate display a long memory pattern. They are likely non-stationary.\n\n\n\n\n\nIn PACF plots, significant correlations were observed in very large number of lags for log difference M1 and M3 money aggregate and unemployment rate."
   },
   {
     "objectID": "index.html#augmented-dickey-fuller",
     "href": "index.html#augmented-dickey-fuller",
     "title": "Forecasting Inflation and Interest Rate in Australia",
     "section": "Augmented Dickey-Fuller",
-    "text": "Augmented Dickey-Fuller\n\n\n\n\n\nVariable\nADF_stats\np_value\n\n\n\n\nCPI_log\n-3.8653\n0.01796\n\n\nGDP_log\n-5.765\n0.01\n\n\nM1_log\n-3.7918\n0.02154\n\n\nM3_log\n-2.9958\n0.1622\n\n\nCash rate\n-4.3135\n0.01\n\n\nUnemployment\n-2.4522\n0.3884"
+    "text": "Augmented Dickey-Fuller\nThe table shows the result of Augmented Dickey-Fuller test. I can reject the non-stationary null for log difference CPI, GDP, M1, cash rate only. Note that Cash rate display a long memory pattern in ACF plot, but tested stationary here. This needs further investigation.\n\n\n\n\n\nVariable\nADF_stats\np_value\n\n\n\n\nCPI_log_dif\n-3.8653\n0.01796\n\n\nGDP_log_dif\n-5.765\n0.01\n\n\nM1_log_dif\n-3.7918\n0.02154\n\n\nM3_log_dif\n-2.9958\n0.1622\n\n\nCash rate\n-4.3135\n0.01\n\n\nUnemployment\n-2.4522\n0.3884"
   },
   {
     "objectID": "index.html#references",

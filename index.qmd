@@ -211,6 +211,8 @@ pm3l <- ggplot(data_trans, aes(date,m3_log)) + geom_line(size = 0.25)+labs(title
 
 ## ACF and PACF
 
+The following ACF plots of 400 times log difference CPI, real GDP, M1 monetary aggregate show autocorrelation over small number of lags, therefore, likely to be stationary. M3 monetary aggregate, cash rate and unemployment rate display a long memory pattern. They are likely non-stationary.
+
 ```{r ACF}
 #| echo: false
 #| message: false
@@ -230,7 +232,7 @@ acf(data_trans$cr)
 acf(data_trans$un_em)
 
 ```
-
+In PACF plots, significant correlations were observed in very large number of lags for log difference M1 and M3 money aggregate and unemployment rate.
 ```{r PACF}
 #| echo: false
 #| message: false
@@ -252,6 +254,8 @@ pacf(data_trans$un_em)
 
 ## Augmented Dickey-Fuller
 
+The table shows the result of Augmented Dickey-Fuller test. I can reject the non-stationary null for log difference CPI, GDP, M1, cash rate only. Note that Cash rate display a long memory pattern in ACF plot, but tested stationary here. This needs further investigation.
+
 ```{r load package}
 #| echo: false
 #| message: false
@@ -268,7 +272,7 @@ adfun_em <- adf.test(data_trans$un_em)
 
 p_value <- c(0.01796, 0.01, 0.02154, 0.1622, 0.01, 0.3884)
 ADF_stats <- c(-3.8653, -5.765, -3.7918,-2.9958, -4.3135,-2.4522)
-Variable <- c("CPI_log", "GDP_log","M1_log","M3_log","Cash rate","Unemployment")
+Variable <- c("CPI_log_dif", "GDP_log_dif","M1_log_dif","M3_log_dif","Cash rate","Unemployment")
 
 adf_res <- cbind(Variable,ADF_stats , p_value)
 
