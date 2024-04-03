@@ -259,12 +259,12 @@ pacf(data_trans$un_em)
 
 library(tseries)
 
-adf.test(data_trans$cpi_log)
-adf.test(data_trans$gdp_log)
-adf.test(data_trans$m1_log)
-adf.test(data_trans$m3_log)
-adf.test(data_trans$cr)
-adf.test(data_trans$un_em)
+adfcpilogd <- adf.test(data_trans$cpi_log)
+adfdgplogd <- adf.test(data_trans$gdp_log)
+adfm1logd <- adf.test(data_trans$m1_log)
+adfm3logd <- adf.test(data_trans$m3_log)
+adfcr <- adf.test(data_trans$cr)
+adfun_em <- adf.test(data_trans$un_em)
 
 p_value <- c(0.01796, 0.01, 0.02154, 0.1622, 0.01, 0.3884)
 ADF_stats <- c(-3.8653, -5.765, -3.7918,-2.9958, -4.3135,-2.4522)
