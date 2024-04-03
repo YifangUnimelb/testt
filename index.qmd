@@ -90,10 +90,12 @@ cr <- cr %>%
   summarize(Average = mean(value, na.rm = TRUE))
 
 cr <- cr %>% filter(Quarter != "2024Q1")
+cr <- cr %>% filter(Quarter != "2024Q2")
+
 
 ```
 
-```{r }
+```{r load package}
 #| echo: false
 #| message: false
 #| warning: false
@@ -292,7 +294,5 @@ $$\epsilon_t \sim N(0, \Sigma \cdot \lambda_t \cdot exp(h_t))$$
 where $\lambda_t \sim IG(\nu/2,\nu/2)$ and $h_t$ follows: $h_t = \rho h_{t-1}+ \epsilon^{h}_{t}$, with $|\rho|< 1$ and $\epsilon^{h}_{t} \sim N(0, \sigma^{2}_h)$. Then the compact distribution of $E \sim MN(0,\Sigma \otimes \Omega)$.
 
 ## Bayesian Estimation
-
-
 
 # References
