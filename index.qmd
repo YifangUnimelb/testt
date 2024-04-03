@@ -42,7 +42,7 @@ The data window covers 1990 Q1 to 2023 Q4, as the most up-to-date post-COVID dat
 #| echo: false
 #| message: false
 #| warning: false
-#| 
+
 library(readrba)
 
 un_em = read_rba(series_id = "GLFSURSA") 
@@ -95,7 +95,7 @@ cr <- cr %>% filter(Quarter != "2024Q2")
 
 ```
 
-```{r load package}
+```{r create data matrix}
 #| echo: false
 #| message: false
 #| warning: false
