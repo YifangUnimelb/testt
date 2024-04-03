@@ -38,7 +38,7 @@ All data is obtained from the RBA. Daily or monthly data is converted to quarter
 
 The data window covers 1990 Q1 to 2023 Q4, as the most up-to-date post-COVID data in Australia, similar to Hartwig(2022).
 
-```{r load package}
+```{r read data}
 #| echo: false
 #| message: false
 #| warning: false
@@ -124,12 +124,11 @@ data_trans <- data_trans %>% select(date, cpi_log, gdp_log, m1_log, m3_log, cr, 
 
 ## Time Series Plot
 
-```{r fig.width=5, fig.height=5}
+```{r load package}
 #| echo: false
 #| message: false
 #| warning: false
 
-install.packages("patchwork")
 library(ggplot2)
 library(patchwork)
 
@@ -171,12 +170,11 @@ pun_em <- ggplot(data, aes(date,un_em)) + geom_line(size = 0.25)+labs(title = "u
 
 ```
 
-```{r fig.width=5, fig.height=3.5}
+```{r}
 #| echo: false
 #| message: false
 #| warning: false
 
-install.packages("patchwork")
 library(ggplot2)
 library(patchwork)
 
@@ -248,7 +246,7 @@ pacf(data_trans$un_em)
 
 ## Augmented Dickey-Fuller
 
-```{r ADF}
+```{r load package}
 #| echo: false
 #| message: false
 #| warning: false
@@ -269,7 +267,6 @@ Variable <- c("CPI_log", "GDP_log","M1_log","M3_log","Cash rate","Unemployment")
 adf_res <- cbind(Variable,ADF_stats , p_value)
 
 library(knitr)
-install.packages("kableExtra")
 library(kableExtra)
 
 kbl(adf_res) %>%
