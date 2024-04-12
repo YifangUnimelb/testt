@@ -8,7 +8,7 @@ execute:
 bibliography: references.bib
 ---
 
-> **Abstract.** This paper forecasts Australian inflation and interest rate using Bayesian Vector Regressive Model with Stochastic Volatility and a multivariate-t distributed error, with the purpose of allowing time varying volatility and capturing sudden increase in volatility during extreme period such as COVID-19.It is an application of such method, which is suggested as a significant improvement over a standard BVAR, to the Australian macroeconomic variables to generate spot and density forecast using post-COVID data.
+> **Abstract.** This paper forecasts Australian inflation and interest rate using Bayesian Vector Regressive Model with stochastic volatility and a multivariate-t distributed error, with the purpose of allowing time varying volatility and capturing sudden increases in volatility during extreme period such as the COVID-19 pandemic. It is an application of such method, which is often considered as a significant improvement over a standard BVAR, to Australian macroeconomic variables to generate spot and density forecasts using post-COVID data.
 
 > **Keywords.** BVARs, Stochastic Volatility, t-distributed error, inflation, interest rate, Australian economy
 
@@ -18,7 +18,7 @@ bibliography: references.bib
 
 **Question:** Can the model suggested produce reliable spot and density forecast for Australian inflation and interest rate?
 
-**Motivation:** Volatility variation across time in macroeconomic variables is widely explored in literature(Bloom,2014), which the standard Gaussian error modeling may fail to capture and then leads to unreliable results. Hartwig(2022) suggests that several BVAR models with modified volatility distribution which differentiate from the standard Gaussian perform better under likelihood measurement. The best fitting one with post-COVID19 data is BVAR-t-SV. The stochastic process captures the time persistence of volatility, which is evident in variables such as short term interest rate(Ball and Torous,1999). A multivariate-t distributed error, with relatively fatter tails, can recognize some extreme volatility as temporary spikes instead of persistent effect. The forecast focus on inflation and interest rate due to their strong relevance to policy making and people's daily lives. Many challenges arise post-COVID for government to facilitate the revitalization of the economy, where forecast plays its roles.
+**Motivation:** Volatility variation across time in macroeconomic variables is widely explored in literature (Bloom,2014), which the standard Gaussian error modeling may fail to capture and then leads to unreliable results. Hartwig(2022) suggests that several BVAR models with modified volatility distribution which differentiate from the standard Gaussian perform better under likelihood measurement. The best fitting one with post-COVID19 data is BVAR-t-SV. The stochastic process captures the time persistence of volatility, which is evident in variables such as short term interest rate(Ball and Torous,1999). A multivariate-t distributed error, with relatively fatter tails, can recognize some extreme volatility as temporary spikes instead of persistent effect. The forecast focus on inflation and interest rate due to their strong relevance to policy making and people's daily lives. Many challenges arise post-COVID for government to facilitate the revitalization of the economy, where forecast plays its roles. This reseach contributes to the existing literature by applying the forecasting method tested to fit the post-COVID data in other countries in Australian economy to faciliate better predictions.
 
 # Data
 
@@ -57,17 +57,20 @@ m3 = read_rba(series_id = "DMAM3S")
 library(dplyr)
 library(lubridate)
 
+cr <- cr %>% filter(date > as.Date("1989-12-31"))
 cpi <- cpi %>% filter(date > as.Date("1989-12-31"))
 gdp <- gdp %>% filter(date > as.Date("1989-12-31"))
 m1 <- m1 %>% filter(date > as.Date("1989-12-31"))
 m3 <- m3 %>% filter(date > as.Date("1989-12-31"))
 un_em <- un_em %>% filter(date > as.Date("1989-12-31"))
 
+cr <- cr %>% filter(date < as.Date("2024-01-01"))
 cpi <- cpi %>% filter(date < as.Date("2024-01-01"))
 gdp <- gdp %>% filter(date < as.Date("2024-01-01"))
 m1 <- m1 %>% filter(date < as.Date("2024-01-01"))
 m3 <- m3 %>% filter(date < as.Date("2024-01-01"))
 un_em <- un_em %>% filter(date < as.Date("2024-01-01"))
+
 
 m1 <- m1 %>%
   mutate(Quarter = paste(year(date), quarter(date), sep = "Q")) %>%
@@ -89,8 +92,6 @@ cr <- cr %>%
   group_by(Quarter) %>%
   summarize(Average = mean(value, na.rm = TRUE))
 
-cr <- cr %>% filter(Quarter != "2024Q1")
-cr <- cr %>% filter(Quarter != "2024Q2")
 
 
 ```
@@ -290,15 +291,44 @@ Here presents the Bayesian VAR with Stochastic Student-t volatility, the general
 
 $$y_t = a_0 +A_1y_{t-1}+...+A_py_{t-p}+ \epsilon_t $$
 
-where $y_t$ is a $n \times 1$ vector and $n$ is the number of variables. $a_0$ is the $n \times 1$ intercept vector. $A_p$ is $n \times n$ coefficient matrix for each lag order $p$. Put it in compact matrix notation:
+where 
 
-$$Y = XA+E$$ where $Y_{T \times n}=(y_1', y_2',...,y_T')'$, $X_{T \times K}=(x_1', x_2',...,x_T')'$. Each $x_{K \times 1}=(1, y_{t-1}',...,y_{t-p}')'$. $A$ is a compact coefficient matrix $A_{K \times n}=(a_0', A_1',...,A_p')'$ and $E_{T \times n}=(\epsilon_1', \epsilon_2',...,\epsilon_T')'$. Note, $K = 1+pn$.
+- $y_t$ is a $n \times 1$ vector 
+- $n$ is the number of variables
+- $a_0$ is the $n \times 1$ intercept vector
+- $A_p$ is $n \times n$ coefficient matrix for each lag order $p$. 
 
-In standard form, the error term is normally distributed $\epsilon_t \sim iidN(0, \Sigma)$, or $E \sim MN(0, \Sigma \otimes I_T)$. $\Sigma$ is a $n \times n$ covariance matrix and $I_T$ is an $T \times T$ identity matrix. In this paper, following Hartwig(2022), I use the specification:
+In compact matrix notation:
+
+$$Y = XA+E$$ where 
+
+- $Y_{T \times n}=(y_1', y_2',...,y_T')'$
+- $X_{T \times K}=(x_1', x_2',...,x_T')'$
+- $x_{i K \times 1}=(1, y_{t-1}',...,y_{t-p}')'$ for i = 1,...T.
+- $A_{K \times n}=(a_0', A_1',...,A_p')'$ is a compact coefficient matrix
+- $E_{T \times n}=(\epsilon_1', \epsilon_2',...,\epsilon_T')'$.
+- $K = 1+pn$.
+
+In standard form, the error term is normally distributed 
+$$\epsilon_t \sim iidN(0, \Sigma)$$ or 
+$$E \sim MN(0, \Sigma \otimes I_T)$$
+
+- $\Sigma$ is a $n \times n$ covariance matrix
+- $I_T$ is an $T \times T$ identity matrix. 
+
+In this paper, following Hartwig(2022), I use the specification:
 
 $$\epsilon_t \sim N(0, \Sigma \cdot \lambda_t \cdot exp(h_t))$$
 
-where $\lambda_t \sim IG(\nu/2,\nu/2)$ and $h_t$ follows: $h_t = \rho h_{t-1}+ \epsilon^{h}_{t}$, with $|\rho|< 1$ and $\epsilon^{h}_{t} \sim N(0, \sigma^{2}_h)$. Then the compact distribution of $E \sim MN(0,\Sigma \otimes \Omega)$.
+where 
+
+- $\lambda_t \sim IG(\nu/2,\nu/2)$ and 
+- $h_t = \rho h_{t-1}+ \epsilon^{h}_{t}$ with
+- $|\rho|< 1$ and $\epsilon^{h}_{t} \sim N(0, \sigma^{2}_h)$.
+
+In matrix form: 
+
+$$E \sim MN(0,\Sigma \otimes \Omega)$$.
 
 ## References
 
