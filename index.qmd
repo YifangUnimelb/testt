@@ -57,17 +57,20 @@ m3 = read_rba(series_id = "DMAM3S")
 library(dplyr)
 library(lubridate)
 
+cr <- cr %>% filter(date > as.Date("1989-12-31"))
 cpi <- cpi %>% filter(date > as.Date("1989-12-31"))
 gdp <- gdp %>% filter(date > as.Date("1989-12-31"))
 m1 <- m1 %>% filter(date > as.Date("1989-12-31"))
 m3 <- m3 %>% filter(date > as.Date("1989-12-31"))
 un_em <- un_em %>% filter(date > as.Date("1989-12-31"))
 
+cr <- cr %>% filter(date < as.Date("2024-01-01"))
 cpi <- cpi %>% filter(date < as.Date("2024-01-01"))
 gdp <- gdp %>% filter(date < as.Date("2024-01-01"))
 m1 <- m1 %>% filter(date < as.Date("2024-01-01"))
 m3 <- m3 %>% filter(date < as.Date("2024-01-01"))
 un_em <- un_em %>% filter(date < as.Date("2024-01-01"))
+
 
 m1 <- m1 %>%
   mutate(Quarter = paste(year(date), quarter(date), sep = "Q")) %>%
@@ -89,8 +92,6 @@ cr <- cr %>%
   group_by(Quarter) %>%
   summarize(Average = mean(value, na.rm = TRUE))
 
-cr <- cr %>% filter(Quarter != "2024Q1")
-cr <- cr %>% filter(Quarter != "2024Q2")
 
 
 ```
