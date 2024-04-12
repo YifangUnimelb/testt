@@ -4,7 +4,7 @@
     "href": "index.html",
     "title": "Forecasting Inflation and Interest Rate in Australia",
     "section": "",
-    "text": "Abstract. This paper forecasts Australian inflation and interest rate using Bayesian Vector Regressive Model with Stochastic Volatility and a multivariate-t distributed error, with the purpose of allowing time varying volatility and capturing sudden increase in volatility during extreme period such as COVID-19.It is an application of such method, which is suggested as a significant improvement over a standard BVAR, to the Australian macroeconomic variables to generate spot and density forecast using post-COVID data."
+    "text": "Abstract. This paper forecasts Australian inflation and interest rate using Bayesian Vector Regressive Model with stochastic volatility and a multivariate-t distributed error, with the purpose of allowing time varying volatility and capturing sudden increases in volatility during extreme period such as the COVID-19 pandemic. It is an application of such method, which is often considered as a significant improvement over a standard BVAR, to Australian macroeconomic variables to generate spot and density forecasts using post-COVID data."
   },
   {
     "objectID": "index.html#time-series-plot",

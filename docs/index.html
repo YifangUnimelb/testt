@@ -137,7 +137,7 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 <blockquote class="blockquote">
-<p><strong>Abstract.</strong> This paper forecasts Australian inflation and interest rate using Bayesian Vector Regressive Model with Stochastic Volatility and a multivariate-t distributed error, with the purpose of allowing time varying volatility and capturing sudden increase in volatility during extreme period such as COVID-19.It is an application of such method, which is suggested as a significant improvement over a standard BVAR, to the Australian macroeconomic variables to generate spot and density forecast using post-COVID data.</p>
+<p><strong>Abstract.</strong> This paper forecasts Australian inflation and interest rate using Bayesian Vector Regressive Model with stochastic volatility and a multivariate-t distributed error, with the purpose of allowing time varying volatility and capturing sudden increases in volatility during extreme period such as the COVID-19 pandemic. It is an application of such method, which is often considered as a significant improvement over a standard BVAR, to Australian macroeconomic variables to generate spot and density forecasts using post-COVID data.</p>
 </blockquote>
 <blockquote class="blockquote">
 <p><strong>Keywords.</strong> BVARs, Stochastic Volatility, t-distributed error, inflation, interest rate, Australian economy</p>
@@ -146,7 +146,7 @@ ul.task-list li input[type="checkbox"] {
 <h1>Introduction</h1>
 <p><strong>Objective:</strong> This paper aims to forecast Australian short term interest rate and inflation. It follows the method in Hartwig(2022), using a BVAR-SV model with its error covariance matrix being multivariate-t distribution.</p>
 <p><strong>Question:</strong> Can the model suggested produce reliable spot and density forecast for Australian inflation and interest rate?</p>
-<p><strong>Motivation:</strong> Volatility variation across time in macroeconomic variables is widely explored in literature(Bloom,2014), which the standard Gaussian error modeling may fail to capture and then leads to unreliable results. Hartwig(2022) suggests that several BVAR models with modified volatility distribution which differentiate from the standard Gaussian perform better under likelihood measurement. The best fitting one with post-COVID19 data is BVAR-t-SV. The stochastic process captures the time persistence of volatility, which is evident in variables such as short term interest rate(Ball and Torous,1999). A multivariate-t distributed error, with relatively fatter tails, can recognize some extreme volatility as temporary spikes instead of persistent effect. The forecast focus on inflation and interest rate due to their strong relevance to policy making and people’s daily lives. Many challenges arise post-COVID for government to facilitate the revitalization of the economy, where forecast plays its roles.</p>
+<p><strong>Motivation:</strong> Volatility variation across time in macroeconomic variables is widely explored in literature (Bloom,2014), which the standard Gaussian error modeling may fail to capture and then leads to unreliable results. Hartwig(2022) suggests that several BVAR models with modified volatility distribution which differentiate from the standard Gaussian perform better under likelihood measurement. The best fitting one with post-COVID19 data is BVAR-t-SV. The stochastic process captures the time persistence of volatility, which is evident in variables such as short term interest rate(Ball and Torous,1999). A multivariate-t distributed error, with relatively fatter tails, can recognize some extreme volatility as temporary spikes instead of persistent effect. The forecast focus on inflation and interest rate due to their strong relevance to policy making and people’s daily lives. Many challenges arise post-COVID for government to facilitate the revitalization of the economy, where forecast plays its roles. This research contributes to the existing literature by applying the forecasting method tested to fit the post-COVID data in other countries in Australian economy to facilitate better predictions.</p>
 </section>
 <section id="data" class="level1">
 <h1>Data</h1>
@@ -244,11 +244,38 @@ ul.task-list li input[type="checkbox"] {
 <h1>Model</h1>
 <p>Here presents the Bayesian VAR with Stochastic Student-t volatility, the general form of a VAR(p):</p>
 <p><span class="math display">\[y_t = a_0 +A_1y_{t-1}+...+A_py_{t-p}+ \epsilon_t \]</span></p>
-<p>where <span class="math inline">\(y_t\)</span> is a <span class="math inline">\(n \times 1\)</span> vector and <span class="math inline">\(n\)</span> is the number of variables. <span class="math inline">\(a_0\)</span> is the <span class="math inline">\(n \times 1\)</span> intercept vector. <span class="math inline">\(A_p\)</span> is <span class="math inline">\(n \times n\)</span> coefficient matrix for each lag order <span class="math inline">\(p\)</span>. Put it in compact matrix notation:</p>
-<p><span class="math display">\[Y = XA+E\]</span> where <span class="math inline">\(Y_{T \times n}=(y_1', y_2',...,y_T')'\)</span>, <span class="math inline">\(X_{T \times K}=(x_1', x_2',...,x_T')'\)</span>. Each <span class="math inline">\(x_{K \times 1}=(1, y_{t-1}',...,y_{t-p}')'\)</span>. <span class="math inline">\(A\)</span> is a compact coefficient matrix <span class="math inline">\(A_{K \times n}=(a_0', A_1',...,A_p')'\)</span> and <span class="math inline">\(E_{T \times n}=(\epsilon_1', \epsilon_2',...,\epsilon_T')'\)</span>. Note, <span class="math inline">\(K = 1+pn\)</span>.</p>
-<p>In standard form, the error term is normally distributed <span class="math inline">\(\epsilon_t \sim iidN(0, \Sigma)\)</span>, or <span class="math inline">\(E \sim MN(0, \Sigma \otimes I_T)\)</span>. <span class="math inline">\(\Sigma\)</span> is a <span class="math inline">\(n \times n\)</span> covariance matrix and <span class="math inline">\(I_T\)</span> is an <span class="math inline">\(T \times T\)</span> identity matrix. In this paper, following Hartwig(2022), I use the specification:</p>
+<p>where</p>
+<ul>
+<li><span class="math inline">\(y_t\)</span> is a <span class="math inline">\(n \times 1\)</span> vector</li>
+<li><span class="math inline">\(n\)</span> is the number of variables</li>
+<li><span class="math inline">\(a_0\)</span> is the <span class="math inline">\(n \times 1\)</span> intercept vector</li>
+<li><span class="math inline">\(A_p\)</span> is <span class="math inline">\(n \times n\)</span> coefficient matrix for each lag order <span class="math inline">\(p\)</span>.</li>
+</ul>
+<p>In compact matrix notation:</p>
+<p><span class="math display">\[Y = XA+E\]</span> where</p>
+<ul>
+<li><span class="math inline">\(Y_{T \times n}=(y_1', y_2',...,y_T')'\)</span></li>
+<li><span class="math inline">\(X_{T \times K}=(x_1', x_2',...,x_T')'\)</span></li>
+<li><span class="math inline">\(x_{i K \times 1}=(1, y_{t-1}',...,y_{t-p}')'\)</span> for i = 1,…T.</li>
+<li><span class="math inline">\(A_{K \times n}=(a_0', A_1',...,A_p')'\)</span> is a compact coefficient matrix</li>
+<li><span class="math inline">\(E_{T \times n}=(\epsilon_1', \epsilon_2',...,\epsilon_T')'\)</span>.</li>
+<li><span class="math inline">\(K = 1+pn\)</span>.</li>
+</ul>
+<p>In standard form, the error term is normally distributed <span class="math display">\[\epsilon_t \sim iidN(0, \Sigma)\]</span> or <span class="math display">\[E \sim MN(0, \Sigma \otimes I_T)\]</span></p>
+<ul>
+<li><span class="math inline">\(\Sigma\)</span> is a <span class="math inline">\(n \times n\)</span> covariance matrix</li>
+<li><span class="math inline">\(I_T\)</span> is an <span class="math inline">\(T \times T\)</span> identity matrix.</li>
+</ul>
+<p>In this paper, following Hartwig(2022), I use the specification:</p>
 <p><span class="math display">\[\epsilon_t \sim N(0, \Sigma \cdot \lambda_t \cdot exp(h_t))\]</span></p>
-<p>where <span class="math inline">\(\lambda_t \sim IG(\nu/2,\nu/2)\)</span> and <span class="math inline">\(h_t\)</span> follows: <span class="math inline">\(h_t = \rho h_{t-1}+ \epsilon^{h}_{t}\)</span>, with <span class="math inline">\(|\rho|&lt; 1\)</span> and <span class="math inline">\(\epsilon^{h}_{t} \sim N(0, \sigma^{2}_h)\)</span>. Then the compact distribution of <span class="math inline">\(E \sim MN(0,\Sigma \otimes \Omega)\)</span>.</p>
+<p>where</p>
+<ul>
+<li><span class="math inline">\(\lambda_t \sim IG(\nu/2,\nu/2)\)</span> and</li>
+<li><span class="math inline">\(h_t = \rho h_{t-1}+ \epsilon^{h}_{t}\)</span> with</li>
+<li><span class="math inline">\(|\rho|&lt; 1\)</span> and <span class="math inline">\(\epsilon^{h}_{t} \sim N(0, \sigma^{2}_h)\)</span>.</li>
+</ul>
+<p>In matrix form:</p>
+<p><span class="math display">\[E \sim MN(0,\Sigma \otimes \Omega)\]</span>.</p>
 <section id="references" class="level2">
 <h2 class="anchored" data-anchor-id="references">References</h2>
 <p>Ball, C. A., &amp; Torous, W. N. (1999). The Stochastic Volatility of Short-Term Interest Rates: Some International Evidence. <em>The Journal of Finance, 54(6), 2339–2359</em>. http://www.jstor.org/stable/797997</p>
