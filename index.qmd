@@ -22,7 +22,7 @@ bibliography: references.bib
 
 # Data
 
-All data is obtained from the RBA. Daily or monthly data is converted to quarterly format by averaging. Following Chan(2020), other than cash rate and unemployment, variables will be transformed using log difference times 400 in BVAR as a form of growth. These are some standard variables to include in a macroeconomics forecast:
+All data is obtained from the RBA. Daily or monthly data is converted to quarterly format by averaging. Following @chan2020large, other than cash rate and unemployment, variables will be transformed using log difference times 400 in BVAR as a form of growth. These are some standard variables to include in a macroeconomics forecast:
 
 **Cash rate:** the cash rate target in percent (series_id:FIRMMCRTD)
 
