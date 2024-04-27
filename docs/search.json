@@ -11,21 +11,21 @@
     "href": "index.html#time-series-plot",
     "title": "Forecasting Inflation and Interest Rate in Australia",
     "section": "Time Series Plot",
-    "text": "Time Series Plot\nThe following are the time series plot of raw CPI, real GDP, M1 and M3 monetary aggregate, unemployment rate and cash rate on quarterly basis. Note the former 4 variables all display a clear growth trend. Unemployment and cash rate are generally decreasing with fluctuations.\n\n\n\n\n\nThe 400 times log difference of CPI, real GDP, M1 and M3 aggregate were plotted here. They seem stationary around a fixed mean. This will be tested later."
+    "text": "Time Series Plot\nThe following are the time series plot of raw CPI, real GDP, M1 and M3 monetary aggregate, unemployment rate and cash rate on quarterly basis. Note the former 4 variables all display a clear growth trend. Unemployment and cash rate are generally decreasing with fluctuations.\n\n\n\n\n\nThe log level of CPI, real GDP, M1 and M3 aggregate were plotted here."
   },
   {
     "objectID": "index.html#acf-and-pacf",
     "href": "index.html#acf-and-pacf",
     "title": "Forecasting Inflation and Interest Rate in Australia",
     "section": "ACF and PACF",
-    "text": "ACF and PACF\nThe following ACF plots of 400 times log difference CPI, real GDP, M1 monetary aggregate show autocorrelation over small number of lags, therefore, likely to be stationary. M3 monetary aggregate, cash rate and unemployment rate display a long memory pattern. They are likely non-stationary.\n\n\n\n\n\nIn PACF plots, significant correlations were observed in very large number of lags for log difference M1 and M3 money aggregate and unemployment rate."
+    "text": "ACF and PACF\nThe following ACF plots of all transformed variables show autocorrelation over a large number of lags, therefore, likely to be non-stationary.\n\n\n\n\n\nIn PACF plots, significant correlations were only observed in the first lag for variables except for unemployment rate. It demonstrates partial autocorrelation for the first and second lag, also in some lags order 15 to 20."
   },
   {
     "objectID": "index.html#augmented-dickey-fuller",
     "href": "index.html#augmented-dickey-fuller",
     "title": "Forecasting Inflation and Interest Rate in Australia",
     "section": "Augmented Dickey-Fuller",
-    "text": "Augmented Dickey-Fuller\nThe table shows the result of Augmented Dickey-Fuller test. I can reject the non-stationary null for log difference CPI, GDP, M1, cash rate only. Note that Cash rate display a long memory pattern in ACF plot, but tested stationary here. This needs further investigation.\n\n\n\n\n\nVariable\nADF_stats\np_value\n\n\n\n\nCPI_log_dif\n-3.8653\n0.01796\n\n\nGDP_log_dif\n-5.765\n0.01\n\n\nM1_log_dif\n-3.7918\n0.02154\n\n\nM3_log_dif\n-2.9958\n0.1622\n\n\nCash rate\n-4.3135\n0.01\n\n\nUnemployment\n-2.4522\n0.3884"
+    "text": "Augmented Dickey-Fuller\nThe table shows the result of Augmented Dickey-Fuller test. All time series are non-stationary except for cash rate in this test.\n\n\n\n\n\nfunction (x, df1, df2, ncp, log = FALSE)\n\n\n{\n\n\nif (missing(ncp))\n\n\n.Call(C_df, x, df1, df2, log)\n\n\nelse .Call(C_dnf, x, df1, df2, ncp, log)\n\n\n}\n\n\n\n\n\n\n\n\nvariable\np_value\nnon_stationary\n\n\n\n\ncpi_log\n0.1161\n1\n\n\ngdp_log\n0.8695\n1\n\n\nm1_log\n0.1176\n1\n\n\nm3_log\n0.7506\n1\n\n\ncr\n0.0107\n0\n\n\nun_em\n0.3928\n1\n\n\n\n\n\nThe first difference ADF test only indicates non-stationarity for log m3 money supply.\n\n\n\n\n\nvariable\np_value\nnon_stationary\n\n\n\n\ncpi_log\n0.0180\n0\n\n\ngdp_log\n0.0100\n0\n\n\nm1_log\n0.0215\n0\n\n\nm3_log\n0.1622\n1\n\n\ncr\n0.0177\n0\n\n\nun_em\n0.0100\n0\n\n\n\n\n\nAll variables are integrated of order 2.\n\n\n\n\n\nvariable\np_value\nnon_stationary\n\n\n\n\ncpi_log\n0.01\n0\n\n\ngdp_log\n0.01\n0\n\n\nm1_log\n0.01\n0\n\n\nm3_log\n0.01\n0\n\n\ncr\n0.01\n0\n\n\nun_em\n0.01\n0"
   },
   {
     "objectID": "index.html#references",

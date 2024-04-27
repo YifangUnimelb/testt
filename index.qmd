@@ -118,7 +118,7 @@ data <- bind_cols(
 data <- data %>% rename(cpi = value...2, cr = Average...3, gdp = value...4, m1 = Average...5, m3 = Average...6, un_em = Average...7)
 
 data_trans <- data %>%
-  mutate(cpi_log = c(NA, 400*diff(log(cpi))), gdp_log =c(NA, 400*diff(log(gdp))), m1_log =c(NA, 400*diff(log(m1))), m3_log =c(NA, 400*diff(log(m3))))
+  mutate(cpi_log = c(log(cpi)), gdp_log =c(log(gdp)), m1_log =c(log(m1)), m3_log =c(log(m3)))
 
 data_trans <- data_trans %>% select(date, cpi_log, gdp_log, m1_log, m3_log, cr, un_em)
 ```
@@ -173,7 +173,7 @@ pun_em <- ggplot(data, aes(date,un_em)) + geom_line(size = 0.25)+labs(title = "u
 
 ```
 
-The 400 times log difference of CPI, real GDP, M1 and M3 aggregate were plotted here. They seem stationary around a fixed mean. This will be tested later.
+The log level of CPI, real GDP, M1 and M3 aggregate were plotted here.
 
 ```{r time series log}
 #| echo: false
@@ -185,23 +185,23 @@ library(patchwork)
 
 theme_set(theme_bw())
 
-pcpil <- ggplot(data_trans, aes(date,cpi_log)) + geom_line(size = 0.25)+labs(title = "log difference CPI") +
+pcpil <- ggplot(data_trans, aes(date,cpi_log)) + geom_line(size = 0.25)+labs(title = "log CPI") +
   theme(plot.title = element_text(size = 10),
         axis.title.x = element_text(size = 8),
         axis.title.y = element_text(size = 8))
 
-pgdpl <- ggplot(data_trans, aes(date,gdp_log)) + geom_line(size = 0.25)+labs(title = "log difference GDP") +
+pgdpl <- ggplot(data_trans, aes(date,gdp_log)) + geom_line(size = 0.25)+labs(title = "log GDP") +
   theme(plot.title = element_text(size = 10),
         axis.title.x = element_text(size = 8),
         axis.title.y = element_text(size = 8))
 
 
-pm1l <- ggplot(data_trans, aes(date,m1_log)) +geom_line(size = 0.25)+labs(title = "log difference M1") +
+pm1l <- ggplot(data_trans, aes(date,m1_log)) +geom_line(size = 0.25)+labs(title = "log M1") +
   theme(plot.title = element_text(size = 10),
         axis.title.x = element_text(size = 8),
         axis.title.y = element_text(size = 8))
 
-pm3l <- ggplot(data_trans, aes(date,m3_log)) + geom_line(size = 0.25)+labs(title = "log difference M3") +
+pm3l <- ggplot(data_trans, aes(date,m3_log)) + geom_line(size = 0.25)+labs(title = "log M3") +
   theme(plot.title = element_text(size = 10),
         axis.title.x = element_text(size = 8),
         axis.title.y = element_text(size = 8))
@@ -212,7 +212,7 @@ pm3l <- ggplot(data_trans, aes(date,m3_log)) + geom_line(size = 0.25)+labs(title
 
 ## ACF and PACF
 
-The following ACF plots of 400 times log difference CPI, real GDP, M1 monetary aggregate show autocorrelation over small number of lags, therefore, likely to be stationary. M3 monetary aggregate, cash rate and unemployment rate display a long memory pattern. They are likely non-stationary.
+The following ACF plots of all transformed variables show autocorrelation over a large number of lags, therefore, likely to be non-stationary.
 
 ```{r ACF}
 #| echo: false
@@ -220,8 +220,6 @@ The following ACF plots of 400 times log difference CPI, real GDP, M1 monetary a
 #| warning: false
 
 library(tidyr)
-
-data_trans <- drop_na(data_trans)
 
 par(mfrow=c(2,3))
 
@@ -234,7 +232,7 @@ acf(data_trans$un_em)
 
 ```
 
-In PACF plots, significant correlations were observed in very large number of lags for log difference M1 and M3 money aggregate and unemployment rate.
+In PACF plots, significant correlations were only observed in the first lag for variables except for unemployment rate. It demonstrates partial autocorrelation for the first and second lag, also in some lags order 15 to 20.
 
 ```{r PACF}
 #| echo: false
@@ -257,35 +255,72 @@ pacf(data_trans$un_em)
 
 ## Augmented Dickey-Fuller
 
-The table shows the result of Augmented Dickey-Fuller test. I can reject the non-stationary null for log difference CPI, GDP, M1, cash rate only. Note that Cash rate display a long memory pattern in ACF plot, but tested stationary here. This needs further investigation.
+The table shows the result of Augmented Dickey-Fuller test. All time series are non-stationary except for cash rate in this test.
 
-```{r load package}
+```{r}
 #| echo: false
 #| message: false
 #| warning: false
 
+library(tidyverse)
 library(tseries)
-
-adfcpilogd <- adf.test(data_trans$cpi_log)
-adfdgplogd <- adf.test(data_trans$gdp_log)
-adfm1logd <- adf.test(data_trans$m1_log)
-adfm3logd <- adf.test(data_trans$m3_log)
-adfcr <- adf.test(data_trans$cr)
-adfun_em <- adf.test(data_trans$un_em)
-
-p_value <- c(0.01796, 0.01, 0.02154, 0.1622, 0.01, 0.3884)
-ADF_stats <- c(-3.8653, -5.765, -3.7918,-2.9958, -4.3135,-2.4522)
-Variable <- c("CPI_log_dif", "GDP_log_dif","M1_log_dif","M3_log_dif","Cash rate","Unemployment")
-
-adf_res <- cbind(Variable,ADF_stats , p_value)
-
 library(knitr)
 library(kableExtra)
 
-kbl(adf_res) %>%
-  kable_styling(bootstrap_options = c("striped", "hover"))
+kable(head(df), digits = 4, align = "c")
 
+Y = data_trans |> 
+  select(-date) |>
+  ts(start = c(year(min(data_trans$date)), quarter(min(data_trans$date))), frequency = 4)
+
+N = ncol(Y) 
+
+p_value   = sapply(1:N, \(i) adf.test(Y[, i])$p.value)
+variable  = colnames(Y)
+
+adf       = cbind(variable, p_value) |> 
+  data.frame() |> 
+  mutate(p_value = round(as.numeric(p_value), 4)) |> 
+  mutate(non_stationary = as.numeric(p_value > 0.05))
+
+kable(adf, digits = 4)
 ```
+
+The first difference ADF test only indicates non-stationarity for log m3 money supply.
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+Y_diff    = diff(Y)
+p_value   = sapply(1:N, \(i) adf.test(Y_diff[, i])$p.value)
+variable  = colnames(Y)
+
+cbind(variable, p_value) |> 
+  data.frame() |> 
+  mutate(p_value = round(as.numeric(p_value), 4)) |> 
+  mutate(non_stationary = as.numeric(p_value > 0.05)) |> 
+  kable(digits = 4)
+```
+
+All variables are integrated of order 2.
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+
+Y_diff2    = diff(Y_diff)
+p_value   = sapply(1:N, \(i) adf.test(Y_diff2[, i])$p.value)
+variable  = colnames(Y)
+
+cbind(variable, p_value) |> 
+  data.frame() |> 
+  mutate(p_value = round(as.numeric(p_value), 4)) |> 
+  mutate(non_stationary = as.numeric(p_value > 0.05)) |> 
+  kable(digits = 4)
+```
+
 
 # Model
 
