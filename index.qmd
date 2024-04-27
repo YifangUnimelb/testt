@@ -267,8 +267,6 @@ library(tseries)
 library(knitr)
 library(kableExtra)
 
-kable(head(df), digits = 4, align = "c")
-
 Y = data_trans |> 
   select(-date) |>
   ts(start = c(year(min(data_trans$date)), quarter(min(data_trans$date))), frequency = 4)
