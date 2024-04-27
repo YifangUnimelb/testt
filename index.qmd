@@ -362,6 +362,6 @@ where
 
 In matrix form:
 
-$$E \sim MN(0,\Sigma \otimes \Omega)$$.
+$$E \sim MN(0,\Sigma \otimes \Omega)$$
 
 ## References {.unnumbered}
