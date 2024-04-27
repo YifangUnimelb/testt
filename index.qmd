@@ -365,16 +365,3 @@ In matrix form:
 
 $$E \sim MN(0,\Sigma \otimes \Omega)$$.
 
-## References
-
-Ball, C. A., & Torous, W. N. (1999). The Stochastic Volatility of Short-Term Interest Rates: Some International Evidence. *The Journal of Finance, 54(6), 2339–2359*. http://www.jstor.org/stable/797997
-
-Bloom, N. (2014). "Fluctuations in Uncertainty." *Journal of Economic Perspectives, 28 (2): 153-76.* DOI: 10.1257/jep.28.2.153
-
-Chan, J. C. C. (2020). Large Bayesian VARs: A Flexible Kronecker Error Covariance Structure. *Journal of Business & Economic Statistics, 38(1), 68–79.* https://doi.org/10.1080/07350015.2018.1451336
-
-Hartwig, B(2022). Bayesian Vars and Prior Calibration in Times of COVID-19. *Deutsche Bundesbank Discussion Paper No. 52/2022*. https://dx.doi.org/10.2139/ssrn.4350794
-
-Stock, H. J., & Watson, W. M. (1999). Forecasting Inflation. *Journal of Monetary Economics, 44(2), 293–335*. https://doi.org/10.1016/S0304-3932(99)00027-6
-
-Dhakal, D., & Kandil, M.&Sharma, S,C. &Trescott, P,B. (1994). Determinants of the inflation rate in the United States: A VAR investigation. *The Quarterly Review of Economics and Finance 34(1), 95-112*. https://doi.org/10.1016/1062-9769(94)90055-8

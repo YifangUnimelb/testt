@@ -26,12 +26,5 @@
     "title": "Forecasting Inflation and Interest Rate in Australia",
     "section": "Augmented Dickey-Fuller",
     "text": "Augmented Dickey-Fuller\nThe table shows the result of Augmented Dickey-Fuller test. All time series are non-stationary except for cash rate in this test.\n\n\n\n\n\nfunction (x, df1, df2, ncp, log = FALSE)\n\n\n{\n\n\nif (missing(ncp))\n\n\n.Call(C_df, x, df1, df2, log)\n\n\nelse .Call(C_dnf, x, df1, df2, ncp, log)\n\n\n}\n\n\n\n\n\n\n\n\nvariable\np_value\nnon_stationary\n\n\n\n\ncpi_log\n0.1161\n1\n\n\ngdp_log\n0.8695\n1\n\n\nm1_log\n0.1176\n1\n\n\nm3_log\n0.7506\n1\n\n\ncr\n0.0107\n0\n\n\nun_em\n0.3928\n1\n\n\n\n\n\nThe first difference ADF test only indicates non-stationarity for log m3 money supply.\n\n\n\n\n\nvariable\np_value\nnon_stationary\n\n\n\n\ncpi_log\n0.0180\n0\n\n\ngdp_log\n0.0100\n0\n\n\nm1_log\n0.0215\n0\n\n\nm3_log\n0.1622\n1\n\n\ncr\n0.0177\n0\n\n\nun_em\n0.0100\n0\n\n\n\n\n\nAll variables are integrated of order 2.\n\n\n\n\n\nvariable\np_value\nnon_stationary\n\n\n\n\ncpi_log\n0.01\n0\n\n\ngdp_log\n0.01\n0\n\n\nm1_log\n0.01\n0\n\n\nm3_log\n0.01\n0\n\n\ncr\n0.01\n0\n\n\nun_em\n0.01\n0"
-  },
-  {
-    "objectID": "index.html#references",
-    "href": "index.html#references",
-    "title": "Forecasting Inflation and Interest Rate in Australia",
-    "section": "References",
-    "text": "References\nBall, C. A., & Torous, W. N. (1999). The Stochastic Volatility of Short-Term Interest Rates: Some International Evidence. The Journal of Finance, 54(6), 2339–2359. http://www.jstor.org/stable/797997\nBloom, N. (2014). “Fluctuations in Uncertainty.” Journal of Economic Perspectives, 28 (2): 153-76. DOI: 10.1257/jep.28.2.153\nChan, J. C. C. (2020). Large Bayesian VARs: A Flexible Kronecker Error Covariance Structure. Journal of Business & Economic Statistics, 38(1), 68–79. https://doi.org/10.1080/07350015.2018.1451336\nHartwig, B(2022). Bayesian Vars and Prior Calibration in Times of COVID-19. Deutsche Bundesbank Discussion Paper No. 52/2022. https://dx.doi.org/10.2139/ssrn.4350794\nStock, H. J., & Watson, W. M. (1999). Forecasting Inflation. Journal of Monetary Economics, 44(2), 293–335. https://doi.org/10.1016/S0304-3932(99)00027-6\nDhakal, D., & Kandil, M.&Sharma, S,C. &Trescott, P,B. (1994). Determinants of the inflation rate in the United States: A VAR investigation. The Quarterly Review of Economics and Finance 34(1), 95-112. https://doi.org/10.1016/1062-9769(94)90055-8"
   }
 ]
