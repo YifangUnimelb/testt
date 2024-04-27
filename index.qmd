@@ -364,4 +364,4 @@ In matrix form:
 
 $$E \sim MN(0,\Sigma \otimes \Omega)$$
 
-## References {.unnumbered}
+# References 
