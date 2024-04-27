@@ -321,7 +321,6 @@ cbind(variable, p_value) |>
   kable(digits = 4)
 ```
 
-
 # Model
 
 Here presents the Bayesian VAR with Stochastic Student-t volatility, the general form of a VAR(p):
@@ -365,3 +364,4 @@ In matrix form:
 
 $$E \sim MN(0,\Sigma \otimes \Omega)$$.
 
+## References {.unnumbered}
