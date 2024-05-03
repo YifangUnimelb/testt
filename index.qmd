@@ -319,9 +319,9 @@ cbind(variable, p_value) |>
   kable(digits = 4)
 ```
 
-# Model
+#Model
 
-Here presents the Bayesian VAR with Stochastic Student-t volatility, the general form of a VAR(p):
+Here presents the Bayesian VAR in the general form of a VAR(p):
 
 $$y_t = a_0 +A_1y_{t-1}+...+A_py_{t-p}+ \epsilon_t $$
 
@@ -343,23 +343,19 @@ $$Y = XA+E$$ where
 -   $E_{T \times n}=(\epsilon_1', \epsilon_2',...,\epsilon_T')'$.
 -   $K = 1+pn$.
 
-In standard form, the error term is normally distributed $$\epsilon_t \sim iidN(0, \Sigma)$$ or $$E \sim MN(0, \Sigma \otimes I_T)$$
+In standard form, the error term is normally distributed $$\epsilon_t \sim iidN(0, \Sigma)$$ or $$vec(E) \sim N(0, \Sigma \otimes I_T)$$
 
 -   $\Sigma$ is a $n \times n$ covariance matrix
 -   $I_T$ is an $T \times T$ identity matrix.
 
-In this paper, following Hartwig(2022), I use the specification:
+To allow for non-Gaussian error, we can relax the assumption for the identity matrix and substitute it for $\Omega$:
 
-$$\epsilon_t \sim N(0, \Sigma \cdot \lambda_t \cdot exp(h_t))$$
+$$vec(E) \sim N(0,\Sigma \otimes \Omega)$$\
 
-where
+The specifications of $\Omega$ and their meaning will be discussed in the next session.
 
--   $\lambda_t \sim IG(\nu/2,\nu/2)$ and
--   $h_t = \rho h_{t-1}+ \epsilon^{h}_{t}$ with
--   $|\rho|< 1$ and $\epsilon^{h}_{t} \sim N(0, \sigma^{2}_h)$.
+# Estimation Procedure
 
-In matrix form:
+## The Baseline Model
 
-$$E \sim MN(0,\Sigma \otimes \Omega)$$
-
-# References 
+# References
