@@ -564,8 +564,11 @@ Then form $\Omega^{(s)}$ with $\lambda_t^{(s)}$, update all the priors, repeat.
 The following function represents the estimation procedure:
 
 ```{r}
-library(MCMCpack)
+#| echo: true
+#| message: true
+#| warning: false
 
+library(MCMCpack)
 bvar_t = function(Y,X){
 
 # Set parameters
