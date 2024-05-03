@@ -100,7 +100,10 @@ ul.task-list li input[type="checkbox"] {
   <li><a href="#acf-and-pacf" id="toc-acf-and-pacf" class="nav-link" data-scroll-target="#acf-and-pacf">ACF and PACF</a></li>
   <li><a href="#augmented-dickey-fuller" id="toc-augmented-dickey-fuller" class="nav-link" data-scroll-target="#augmented-dickey-fuller">Augmented Dickey-Fuller</a></li>
   </ul></li>
-  <li><a href="#model" id="toc-model" class="nav-link" data-scroll-target="#model">Model</a></li>
+  <li><a href="#estimation-procedure" id="toc-estimation-procedure" class="nav-link" data-scroll-target="#estimation-procedure">Estimation Procedure</a>
+  <ul class="collapse">
+  <li><a href="#the-baseline-model" id="toc-the-baseline-model" class="nav-link" data-scroll-target="#the-baseline-model">The Baseline Model</a></li>
+  </ul></li>
   <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
   </ul>
 </nav>
@@ -323,11 +326,8 @@ ul.task-list li input[type="checkbox"] {
 </table>
 </div>
 </div>
-</section>
-</section>
-<section id="model" class="level1">
-<h1>Model</h1>
-<p>Here presents the Bayesian VAR with Stochastic Student-t volatility, the general form of a VAR(p):</p>
+<p>#Model</p>
+<p>Here presents the Bayesian VAR in the general form of a VAR(p):</p>
 <p><span class="math display">\[y_t = a_0 +A_1y_{t-1}+...+A_py_{t-p}+ \epsilon_t \]</span></p>
 <p>where</p>
 <ul>
@@ -346,21 +346,22 @@ ul.task-list li input[type="checkbox"] {
 <li><span class="math inline">\(E_{T \times n}=(\epsilon_1', \epsilon_2',...,\epsilon_T')'\)</span>.</li>
 <li><span class="math inline">\(K = 1+pn\)</span>.</li>
 </ul>
-<p>In standard form, the error term is normally distributed <span class="math display">\[\epsilon_t \sim iidN(0, \Sigma)\]</span> or <span class="math display">\[E \sim MN(0, \Sigma \otimes I_T)\]</span></p>
+<p>In standard form, the error term is normally distributed <span class="math display">\[\epsilon_t \sim iidN(0, \Sigma)\]</span> or <span class="math display">\[vec(E) \sim N(0, \Sigma \otimes I_T)\]</span></p>
 <ul>
 <li><span class="math inline">\(\Sigma\)</span> is a <span class="math inline">\(n \times n\)</span> covariance matrix</li>
 <li><span class="math inline">\(I_T\)</span> is an <span class="math inline">\(T \times T\)</span> identity matrix.</li>
 </ul>
-<p>In this paper, following Hartwig(2022), I use the specification:</p>
-<p><span class="math display">\[\epsilon_t \sim N(0, \Sigma \cdot \lambda_t \cdot exp(h_t))\]</span></p>
-<p>where</p>
-<ul>
-<li><span class="math inline">\(\lambda_t \sim IG(\nu/2,\nu/2)\)</span> and</li>
-<li><span class="math inline">\(h_t = \rho h_{t-1}+ \epsilon^{h}_{t}\)</span> with</li>
-<li><span class="math inline">\(|\rho|&lt; 1\)</span> and <span class="math inline">\(\epsilon^{h}_{t} \sim N(0, \sigma^{2}_h)\)</span>.</li>
-</ul>
-<p>In matrix form:</p>
-<p><span class="math display">\[E \sim MN(0,\Sigma \otimes \Omega)\]</span></p>
+<p>To allow for non-Gaussian error, we can relax the assumption for the identity matrix and substitute it for <span class="math inline">\(\Omega\)</span>:</p>
+<p><span class="math display">\[vec(E) \sim N(0,\Sigma \otimes \Omega)\]</span><br>
+</p>
+<p>The specifications of <span class="math inline">\(\Omega\)</span> and their meaning will be discussed in the next session.</p>
+</section>
+</section>
+<section id="estimation-procedure" class="level1">
+<h1>Estimation Procedure</h1>
+<section id="the-baseline-model" class="level2">
+<h2 class="anchored" data-anchor-id="the-baseline-model">The Baseline Model</h2>
+</section>
 </section>
 <section id="references" class="level1">
 <h1>References</h1>
