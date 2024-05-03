@@ -393,7 +393,7 @@ library(MASS)
 library(HDInterval)
 ```
 
-The following contains code for the estimation and a results demonstration with a bivariate Gaussian random walk data, with true parameter $A = [0_{2 \times 1} \space I_2]$ and $\Sigma = I_2$.
+The following contains code for the estimation and a results demonstration with a bivariate Gaussian random walk data, with true parameter $A = [0_{2 \times 1} \space I_2]'$ and $\Sigma = I_2$.
 
 ```{r}
 #| echo: false

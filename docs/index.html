@@ -403,7 +403,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><span class="math display">\[\bar{V} = (X'X + \underline{V}^{-1})^{-1}\]</span></p>
 <p><span class="math display">\[\bar{A} = \bar{V}(X'Y + \underline{V}^{-1}\underline{A})\]</span> <span class="math display">\[\bar{S} = \underline{S}+Y'Y + \underline{A}'\underline{V}^{-1}\underline{A}-\bar{A}'\bar{V}^{-1}\bar{A}\]</span> <span class="math display">\[\bar{\nu}= T + \underline{\nu}\]</span> To accommodate non-stationary data, we use minnesota prior:</p>
 <p><span class="math display">\[\underline{A} = [0_{N\times1}   \space\space  I_N    \space\space 0_{N \times (p-1N) }]'\]</span> <span class="math display">\[\underline{V} = diag([\kappa_{2} \space \space  \kappa_{1} (p^{-2} \otimes i_{N}')])\]</span></p>
-<p>The following contains code for the estimation and a results demonstration with a bivariate Gaussian random walk data, with true parameter <span class="math inline">\(A = [0_{2 \times 1} \space I_2]\)</span> and <span class="math inline">\(\Sigma = I_2\)</span>.</p>
+<p>The following contains code for the estimation and a results demonstration with a bivariate Gaussian random walk data, with true parameter <span class="math inline">\(A = [0_{2 \times 1} \space I_2]'\)</span> and <span class="math inline">\(\Sigma = I_2\)</span>.</p>
 <div class="cell">
 <div class="cell-output-display">
 <p><img src="index_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid" width="672"></p>
