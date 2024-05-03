@@ -657,7 +657,7 @@ round(mean(bvar_t(Y,X)$lambda.posterior.draws[,1:1000]),2)
 # Sigma posterior mean
 
 ```
-The printed results are from the same random walk data. The estimated $A$ is fairly close to the true value. However, the $\Sigma$ deviates for a decent amount.This is a problematic feature of this specific model. 
+The printed results are from the same random walk data. The estimated $A$ is fairly close to the true value. However, the estimated $\Sigma = (1.31, 0.27; 0.27, 1.34)$, which deviates for a decent amount.This is a problematic feature of this specific model. 
 
 
 # References
