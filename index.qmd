@@ -358,4 +358,309 @@ The specifications of $\Omega$ and their meaning will be discussed in the next s
 
 ## The Baseline Model
 
+The baseline model is the standard form where $\Omega$ = $I_T$. With predictive density:
+
+$$Y|X,A,\Sigma \sim MN_{T \times N} (XA, \Sigma, I_T)$$
+Therefore the likelihood function:
+$$L(A,\Sigma|Y,X) \propto det(\Sigma)^{-\frac{T}{2}}exp(-\frac{1}{2}tr[\Sigma^{-1}(Y-XA)'(Y-XA)])$$
+The matrix-variate normal and inverse Wishart natural conjugate priors for $A$ and $\Sigma$:
+
+$$p(A,\Sigma) = p(A|\Sigma)p(\Sigma)$$
+$$A|\Sigma = MN_{K\times N}(\underline{A},\Sigma,\underline{V})$$
+$$\Sigma \sim IW_N(\underline{S},\underline{\nu})$$
+Derive the product of the likelihood function and the density function $p(A,\Sigma)$, collect corresponding terms and then we have the full conditional posterior distribution:
+
+$$A|\Sigma = MN_{K\times N}(\bar{A},\Sigma,\bar{V})$$
+$$\Sigma \sim IW_N(\bar{S},\bar{\nu})$$
+where the parameters are:
+
+$$\bar{V} = (X'X + \underline{V}^{-1})^{-1}$$
+
+$$\bar{A} = \bar{V}(X'Y + \underline{V}^{-1}\underline{A})$$
+$$\bar{S} = \underline{S}+Y'Y + \underline{A}'\underline{V}^{-1}\underline{A}-\bar{A}'\bar{V}^{-1}\bar{A}$$
+$$\bar{\nu}= T + \underline{\nu}$$
+To accommodate non-stationary data, we use minnesota prior:
+
+$$\underline{A} = [0_{N\times1}   \space\space  I_N    \space\space 0_{N \times (p-1N) }]'$$
+$$\underline{V} = diag([\kappa_{2} \space \space  \kappa_{1} (p^{-2} \otimes i_{N}')])$$
+```{r setup, include=FALSE}
+#| echo: false
+#| message: false
+#| warning: false
+library(mvtnorm)
+library(plot3D)
+library(MASS)
+library(HDInterval)
+```
+
+The following contains code for the estimation and a results demonstration with a bivariate Gaussian random walk data, with true parameter $A = [0_{2 \times 1} \space I_2]$ and $\Sigma = I_2$.
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+# bivariate gaussian random walk
+set.seed(123456)
+library(MASS)
+
+# Set parameters
+t <- 100  # Number of observations
+mean <- c(0, 0)  # Mean of the bi-variate normal distribution
+cov <- diag(2)  # Identity matrix of order 2 as the covariance matrix
+
+# Simulate random steps
+steps <- mvrnorm(t, mu = mean, Sigma = cov)
+
+y1 = as.matrix(cumsum(steps[,1]))
+y2 = as.matrix(cumsum(steps[,2]))
+y = cbind(y1,y2)
+```
+
+```{r}
+#| echo: false
+#| message: true
+#| warning: false
+plot(y1, type='l',ylim=c(min(y), max(y)), col='red', ylab='', xlab='', main='Bivariate Random Walk')
+lines(y2, col='blue', ylab='', xlab='')
+```
+
+````{r}
+#| echo: false
+#| message: false
+#| warning: false
+# construct X and Y with random walk data
+p = 1
+
+y  = ts(y, names=c("v1","v2"))
+
+Y = y[(p+1):nrow(y),]
+X = matrix(1,nrow(y)-p,1)
+
+for (i in 1:p){
+  X     = cbind(X,y[(p+1):nrow(y)-i,])
+}
+```
+
+The following function represents the estimation procedure:
+
+```{r}
+#| echo: true
+#| message: true
+#| warning: false
+#Function form of basic model
+
+bvar_est = function(Y,X){
+  
+  #set parameters
+  t = nrow(Y)
+  N = 2 #number of variables
+  S = 50000 #number of draws
+  
+  #mle
+  A.hat  = solve(t(X)%*%X)%*%t(X)%*%Y
+  Sigma.hat  = t(Y-X%*%A.hat)%*%(Y-X%*%A.hat)/t
+  
+  # minnesota prior
+  k1     = 0.02^2
+  k2     = 100
+  A.prior     = matrix(0,nrow(A.hat),ncol(A.hat))
+  A.prior[2:(1+N),] = diag(N)
+  V.prior     = diag(c(k2,k1*((1:p)^(-2))%x%rep(1,N)))
+  S.prior     = diag(diag(Sigma.hat))
+  nu.prior    = N+1
+  
+  # NIW posterior
+
+  V.bar.inv   = t(X)%*%X + diag(1/diag(V.prior))
+  V.bar       = solve(V.bar.inv)
+  A.bar       = V.bar%*%(t(X)%*%Y + diag(1/diag(V.prior))%*%A.prior)
+  nu.bar      = nrow(Y) + nu.prior
+  S.bar       = S.prior + t(Y)%*%Y + t(A.prior)%*%diag(1/diag(V.prior))%*%A.prior - t(A.bar)%*%V.bar.inv%*%A.bar  
+  S.bar.inv   = solve(S.bar)
+  
+  #draws from posterior
+
+  Sigma.posterior   = rWishart(S, df=nu.bar, Sigma=S.bar.inv)
+  Sigma.posterior   = apply(Sigma.posterior,3,solve)
+  Sigma.posterior   = array(Sigma.posterior,c(N,N,S))
+  A.posterior       = array(rnorm(prod(c(dim(A.bar),S))),c(dim(A.bar),S))
+  L                 = t(chol(V.bar))
+
+  for (s in 1:S){
+    A.posterior[,,s]= A.bar + L%*%A.posterior[,,s]%*%chol(Sigma.posterior[,,s])
+  }
+
+  round(apply(A.posterior,1:2,mean),3)
+
+  # report posterior means and sd of parameters
+  A.E         = apply(A.posterior,1:2,mean)
+  Sigma.E     = apply(Sigma.posterior,1:2,mean)
+
+  output = list(
+    A.E = A.E,
+    Sigma.E = Sigma.E
+  )
+  return(output)
+}
+
+# A posterior mean
+round(bvar_est(Y,X)$A.E,2)
+# Sigma posterior mean
+round(bvar_est(Y,X)$Sigma.E,2)
+
+
+```
+The printed results above are for $A$ and $\Sigma$,which is fairly close to the true value. 
+
+## The Extended Model - Student-t Distributed Error
+
+The model is where $\Omega$ = $diag(\lambda_1, \lambda_2,...,\lambda_T)$. Each lambda independently drawn from an Inverse Gamma 2 distribution $IG2(\nu,\nu)$. The predictive density:
+
+$$Y|X,A,\Sigma \sim MN_{T \times N} (XA, \Sigma, \Omega)$$
+Therefore the likelihood function:
+
+$$L(A,\Sigma,\Omega|Y,X) \propto det(\Omega)^{-\frac{N}{2}}det(\Sigma)^{-\frac{T}{2}}exp(-\frac{1}{2}tr[\Sigma^{-1}(Y-XA)'\Omega^{-1}(Y-XA)])$$
+
+I assume the same matrix-variate normal and inverse Wishart natural conjugate priors for $A$ and $\Sigma$. Derive the product of the likelihood function and the density function $p(A,\Sigma)$, collect corresponding terms and then we have the full conditional posterior distribution:
+
+$$A|\Sigma = MN_{K\times N}(\bar{A},\Sigma,\bar{V})$$
+$$\Sigma \sim IW_N(\bar{S},\bar{\nu})$$
+where the parameters are:
+
+$$\bar{V} = (X'\Omega^{-1}X + \underline{V}^{-1})^{-1}$$
+
+$$\bar{A} = \bar{V}(X'\Omega^{-1}Y + \underline{V}^{-1}\underline{A})$$
+$$\bar{S} = \underline{S}+Y'\Omega^{-1}Y + \underline{A}'\underline{V}^{-1}\underline{A}-\bar{A}'\bar{V}^{-1}\bar{A}$$
+$$\bar{\nu}= T + \underline{\nu}$$
+To derive the full conditional posterior for $\lambda_t$, the kernel of likelihood function can be expressed as:
+
+$$L(A,\Sigma,\Omega|Y,X) \propto det(\Omega)^{-\frac{N}{2}}exp(-\frac{1}{2}tr[\Sigma^{-1}(Y-XA)'\Omega^{-1}(Y-XA)])$$
+$$= (\prod^{T}_{i = 1} \lambda_t^{-\frac{N}{2}})exp({-\frac{1}{2}}{\frac{1}{\lambda_t}} \sum^{T}_{i =1}\epsilon_t' \Sigma^{-1}\epsilon_t)$$
+That is for each $t$, the likelihood function is:
+
+$$ \lambda_t^{-\frac{N}{2}}exp({-\frac{1}{2}}{\frac{1}{\lambda_t}} \epsilon_t' \Sigma^{-1}\epsilon_t)$$
+The density function for $\lambda_t \sim IG2(\nu,\nu)$ is:
+
+$$\lambda_t^{-\frac{\nu_{\lambda}+2}{2}}exp({-\frac{1}{2}}{\frac{\nu_{\lambda}}{\lambda_t}})$$
+The posterior density for $\lambda_t$ is:
+
+$$p(\lambda_t|Y,X,A,\Sigma,\nu_{\lambda})= \lambda_t^{-\frac{N+\nu_{\lambda}+2}{2}}exp[{-\frac{1}{2}}{\frac{1}{\lambda_t}}(\nu_{\lambda}+\epsilon_t' \Sigma^{-1}\epsilon_t))]$$
+Which is:
+$$\lambda_t|Y,X,A,\Sigma,\nu_{\lambda} \sim IG2(\bar\nu_{\lambda},\bar{s}_{\lambda})$$
+$$\bar\nu_{\lambda} = N+\underline\nu_{\lambda}$$
+$$\bar{s}_{\lambda} =\underline\nu_{\lambda}+\epsilon_t' \Sigma^{-1}\epsilon_t$$
+Here, we need a gibb sampler to estimate each parameter. I initialize a $\Omega^{(0)}$, which is a diagonal matrix with each element $\lambda_t$ drawn from $IG2(\bar\nu_{\lambda},\bar\nu_{\lambda})$ and let $\bar\nu_{\lambda}=5$.Then:
+
+1. Draw $\Sigma^{(s)}$ from $IW_N(\bar{S},\bar{\nu})$.
+
+2. Draw $A^{(s)}$ from $MN_{K\times N}(\bar{A},\Sigma^{(s)},\bar{V})$.
+
+Then for each iteration $s$, I draw $T$ $\lambda_t$ using corresponding row in the error matrix:
+
+3. Draw $\lambda_t^{(s)}$ from $IG2(\bar\nu_{\lambda},\bar{s}_{\lambda})$.
+
+Then form $\Omega^{(s)}$ with $\lambda_t^{(s)}$, update all the priors, repeat.
+
+The following function represents the estimation procedure:
+
+```{r}
+
+#| echo: true
+#| message: true
+#| warning: false
+
+library(MCMCpack)
+
+bvar_t = function(Y,X){
+
+# Set parameters
+S = 1000
+N = 2
+t <- nrow(Y)  
+p = 1
+
+#mle
+
+A.hat  = solve(t(X)%*%X)%*%t(X)%*%Y
+Sigma.hat  = t(Y-X%*%A.hat)%*%(Y-X%*%A.hat)/t
+
+#minnesota
+
+k1     = 0.02^2
+k2     = 100
+A.prior <- matrix(0,nrow(A.hat),ncol(A.hat))
+A.prior[2:(1+N),] = diag(N)
+V.prior     = diag(c(k2,k1*((1:p)^(-2))%x%rep(1,N)))
+Sigma.s.prior    = diag(diag(Sigma.hat))
+Sigma.v.prior    = N+1
+lambda.nu.prior = 5
+
+#inital lambda/omega
+
+set.seed(111)
+lambda0 = rinvgamma(t, lambda.nu.prior/2, lambda.nu.prior/2)
+omega0 = diag(lambda0)
+
+# Initialize arrays to store posterior draws
+  Sigma.posterior.draws = array(NA, c(N,N,S))
+  A.posterior.draws = array(NA, c((1+p*N),N,S))
+  
+  Omega.posterior.draws = array(NA, c(t,t,S+1))
+  Omega.posterior.draws[,,1] = omega0
+  
+  lambda.posterior.draws = array(NA,c(t,S))
+  lambda.s.posterior = array(NA,c(t,S))
+  
+  # diag(1/(lambda.posterior.draws[,s]))
+  
+for (s in 1:S){ 
+
+    Omega.inv.s = solve(Omega.posterior.draws[,,s])
+    
+    V.posterior     = solve(t(X)%*%Omega.inv.s%*%X + solve(V.prior))
+    
+    A.posterior     = V.posterior%*%(t(X)%*%Omega.inv.s%*%Y + solve(V.prior)%*%A.prior)
+    
+    Sigma.s.posterior = t(Y)%*%Omega.inv.s%*%Y + t(A.prior)%*%solve(V.prior)%*%A.prior + Sigma.s.prior - t(A.posterior)%*%solve(V.posterior)%*%A.posterior
+    
+    Sigma.v.posterior = nrow(Y) + Sigma.v.prior
+    
+    Sigma.posterior.draws[,,s] = rWishart(1, Sigma.v.posterior, solve(Sigma.s.posterior))[,,1]
+    Sigma.posterior.draws[,,s] = solve(Sigma.posterior.draws[,,s])
+
+    A.posterior.draws[,,s] = matrix(mvtnorm::rmvnorm(1, mean=as.vector(A.posterior), sigma=Sigma.posterior.draws[,,s]%x%V.posterior), ncol=N)
+    
+    E.s = Y-X%*%A.posterior.draws[,,s]
+    
+    for (x in 1:t){
+    lambda.s.posterior[,s] = lambda.nu.prior + t((E.s)[x,])%*%Sigma.posterior.draws[,,s]%*%(E.s)[x,]
+    }
+    
+    lambda.v.posterior = N + lambda.nu.prior
+    
+    for (x in 1:t){
+    lambda.posterior.draws[x,s] = rinvgamma(1,lambda.v.posterior/2, lambda.s.posterior[x,s]/2)
+    }
+    
+    Omega.posterior.draws[,,s+1] = diag(lambda.posterior.draws[,s])
+} 
+  output = list(
+    A.posterior.draws = A.posterior.draws,
+    Sigma.posterior.draws = Sigma.posterior.draws,
+    lambda.posterior.draws = lambda.posterior.draws
+  )
+  return(output)
+}
+
+# A posterior mean
+round(apply(bvar_t(Y,X)$A.posterior.draws[,,s], 1:2, mean),2)
+# Lambda posterior mean
+round(mean(bvar_t(Y,X)$lambda.posterior.draws[,s]),2)
+# Sigma posterior mean
+round(apply(Sigma.posterior.draws[,,s],1:2,mean),2)*round(mean(bvar_t(Y,X)$lambda.posterior.draws[,1:s]),2)
+
+```
+The printed results are from the same random walk data. The estimated $A$ is fairly close to the true value. However, the $\Sigma$ deviates for a decent amount.This is a problematic feature of this specific model 
+
+
 # References
