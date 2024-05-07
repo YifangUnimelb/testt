@@ -575,10 +575,13 @@ The following function represents the estimation procedure:
 
 library(MCMCpack)
 bvar_t = function(Y,X){
+  
+stopifnot(is.matrix(Y), is.matrix(X))  #numeric
+stopifnot(!any(is.na(Y)), !any(is.na(X))) #no NA
 
 # Set parameters
 S = 1000
-N = 2
+N = ncol(Y)
 t <- nrow(Y)  
 p = 1
 
