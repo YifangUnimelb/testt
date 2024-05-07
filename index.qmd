@@ -517,7 +517,7 @@ The printed results above are for $A$ and $\Sigma$,which is fairly close to the 
 
 ## The Extended Model - Student-t Distributed Error
 
-The model is where $\Omega$ = $diag(\lambda_1, \lambda_2,...,\lambda_T)$. Each lambda independently drawn from an Inverse Gamma 2 distribution $IG2(\nu,\nu)$. The predictive density:
+Following @chan2020large, $\Omega$ will be defined as $diag(\lambda_1, \lambda_2,...,\lambda_T)$, where each lambda is independently drawn from an Inverse Gamma 2 distribution $IG2(\nu,\nu)$. The predictive density:
 
 $$Y|X,A,\Sigma \sim MN_{T \times N} (XA, \Sigma, \Omega)$$
 Therefore the likelihood function:
