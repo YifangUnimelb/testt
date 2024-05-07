@@ -451,9 +451,12 @@ The following function represents the estimation procedure:
 
 bvar_est = function(Y,X){
   
+  stopifnot(is.matrix(Y), is.matrix(X))  #numeric
+  stopifnot(!any(is.na(Y)), !any(is.na(X))) #no NA
+  
   #set parameters
   t = nrow(Y)
-  N = 2 #number of variables
+  N = ncol(Y) #number of variables
   S = 50000 #number of draws
   
   #mle
