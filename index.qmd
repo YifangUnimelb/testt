@@ -548,7 +548,9 @@ $$\lambda_t^{-\frac{\nu_{\lambda}+2}{2}}exp({-\frac{1}{2}}{\frac{\nu_{\lambda}}{
 The posterior density for $\lambda_t$ is:
 
 $$p(\lambda_t|Y,X,A,\Sigma,\nu_{\lambda})= \lambda_t^{-\frac{N+\nu_{\lambda}+2}{2}}exp[{-\frac{1}{2}}{\frac{1}{\lambda_t}}(\nu_{\lambda}+\epsilon_t' \Sigma^{-1}\epsilon_t))]$$
-Which is:
+with $$\epsilon_t = (y_t- x_t'A).$$
+The posterior follows an $IG2$ distribution:
+
 $$\lambda_t|Y,X,A,\Sigma,\nu_{\lambda} \sim IG2(\bar\nu_{\lambda},\bar{s}_{\lambda})$$
 $$\bar\nu_{\lambda} = N+\underline\nu_{\lambda}$$
 $$\bar{s}_{\lambda} =\underline\nu_{\lambda}+\epsilon_t' \Sigma^{-1}\epsilon_t$$
