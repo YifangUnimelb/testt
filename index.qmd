@@ -424,7 +424,7 @@ plot(y1, type='l',ylim=c(min(y), max(y)), col='red', ylab='', xlab='', main='Biv
 lines(y2, col='blue', ylab='', xlab='')
 ```
 
-````{r}
+````{r define}
 #| echo: false
 #| message: false
 #| warning: false
@@ -433,11 +433,11 @@ p = 1
 
 y  = ts(y, names=c("v1","v2"))
 
-Y = y[(p+1):nrow(y),]
-X = matrix(1,nrow(y)-p,1)
+Y_rw = y[(p+1):nrow(y),]
+X_rw = matrix(1,nrow(y)-p,1)
 
 for (i in 1:p){
-  X     = cbind(X,y[(p+1):nrow(y)-i,])
+  X_rw     = cbind(X_rw,y[(p+1):nrow(y)-i,])
 }
 ```
 
@@ -504,9 +504,9 @@ bvar_est = function(Y,X){
 }
 
 # A posterior mean
-round(bvar_est(Y,X)$A.E,2)
+round(bvar_est(Y_rw,X_rw)$A.E,2)
 # Sigma posterior mean
-round(bvar_est(Y,X)$Sigma.E,2)
+round(bvar_est(Y_rw,X_rw)$Sigma.E,2)
 
 
 ```
@@ -569,11 +569,12 @@ The following function represents the estimation procedure:
 #| warning: false
 
 library(MCMCpack)
+
 bvar_t = function(Y,X){
 
 # Set parameters
 S = 1000
-N = 2
+N = ncol(Y)
 t <- nrow(Y)  
 p = 1
 
@@ -595,35 +596,29 @@ lambda.nu.prior = 5
 
 #inital lambda/omega
 
-lambda0 = rinvgamma(t, lambda.nu.prior/2, lambda.nu.prior/2)
-omega0 = diag(lambda0)
+lambda0 = rinvgamma(t, lambda.nu.prior/2, lambda_nu.prior/2)
 
 # Initialize arrays to store posterior draws
   Sigma.posterior.draws = array(NA, c(N,N,S))
   A.posterior.draws = array(NA, c((1+p*N),N,S))
   
-  Omega.posterior.draws = array(NA, c(t,t,S+1))
-  Omega.posterior.draws[,,1] = omega0
-  
-  lambda.posterior.draws = array(NA,c(t,S))
+  lambda.posterior.draws = array(NA,c(t,S+1))
+  lambda.posterior.draws[,1] = lambda0 
   lambda.s.posterior = array(NA,c(t,S))
   
   # diag(1/(lambda.posterior.draws[,s]))
   
 for (s in 1:S){ 
-
-    Omega.inv.s = solve(Omega.posterior.draws[,,s])
     
-    V.posterior     = solve(t(X)%*%Omega.inv.s%*%X + solve(V.prior))
+    V.posterior     = solve(t(X)%*%diag(1/(lambda.posterior.draws[,s]))%*%X + solve(V.prior))
     
-    A.posterior     = V.posterior%*%(t(X)%*%Omega.inv.s%*%Y + solve(V.prior)%*%A.prior)
+    A.posterior     = V.posterior%*%(t(X)%*%diag(1/(lambda.posterior.draws[,s]))%*%Y + solve(V.prior)%*%A.prior)
     
-    Sigma.s.posterior = t(Y)%*%Omega.inv.s%*%Y + t(A.prior)%*%solve(V.prior)%*%A.prior + Sigma.s.prior - t(A.posterior)%*%solve(V.posterior)%*%A.posterior
+    Sigma.s.posterior = t(Y)%*%diag(1/(lambda.posterior.draws[,s]))%*%Y + t(A.prior)%*%solve(V.prior)%*%A.prior + Sigma.s.prior - t(A.posterior)%*%solve(V.posterior)%*%A.posterior
     
     Sigma.v.posterior = nrow(Y) + Sigma.v.prior
     
-    Sigma.posterior.draws[,,s] = rWishart(1, Sigma.v.posterior, solve(Sigma.s.posterior))[,,1]
-    Sigma.posterior.draws[,,s] = solve(Sigma.posterior.draws[,,s])
+    Sigma.posterior.draws[,,s] = riwish(Sigma.v.posterior, Sigma.s.posterior)
 
     A.posterior.draws[,,s] = matrix(mvtnorm::rmvnorm(1, mean=as.vector(A.posterior), sigma=Sigma.posterior.draws[,,s]%x%V.posterior), ncol=N)
     
@@ -636,10 +631,9 @@ for (s in 1:S){
     lambda.v.posterior = N + lambda.nu.prior
     
     for (x in 1:t){
-    lambda.posterior.draws[x,s] = rinvgamma(1,lambda.v.posterior/2, lambda.s.posterior[x,s]/2)
+    lambda.posterior.draws[x,s+1] = rinvgamma(1,lambda.v.posterior/2, lambda.s.posterior[x,s]/2)
     }
     
-    Omega.posterior.draws[,,s+1] = diag(lambda.posterior.draws[,s])
 } 
   output = list(
     A.posterior.draws = A.posterior.draws,
@@ -651,10 +645,12 @@ for (s in 1:S){
 
 
 # A posterior mean
-round(apply(bvar_t(Y,X)$A.posterior.draws[,,1:1000], 1:2, mean),2)
+round(apply(bvar_t(Y_rw,X_rw)$A.posterior.draws[,,1:1000], 1:2, mean),2)
 # Lambda posterior mean
-round(mean(bvar_t(Y,X)$lambda.posterior.draws[,1:1000]),2)
+round(mean(bvar_t(Y_rw,X_rw)$lambda.posterior.draws[,1:1000]),2)
 # Sigma posterior mean
+round(mean(bvar_t(Y_rw,X_rw)$lambda.posterior.draws[,1:1000]),2)*round(apply(bvar_t(Y_rw,X_rw)$Sigma.posterior.draws[,,1:1000],1:2, mean),2)
+
 
 ```
 The printed results are from the same random walk data. The estimated $A$ is fairly close to the true value. However, the estimated $\Sigma = (1.31, 0.27; 0.27, 1.34)$, which deviates for a decent amount.This is a problematic feature of this specific model. 
