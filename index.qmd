@@ -644,14 +644,6 @@ for (s in 1:S){
 }
 
 
-# A posterior mean
-round(apply(bvar_t(Y_rw,X_rw)$A.posterior.draws[,,1:1000], 1:2, mean),2)
-# Lambda posterior mean
-round(mean(bvar_t(Y_rw,X_rw)$lambda.posterior.draws[,1:1000]),2)
-# Sigma posterior mean
-round(mean(bvar_t(Y_rw,X_rw)$lambda.posterior.draws[,1:1000]),2)*round(apply(bvar_t(Y_rw,X_rw)$Sigma.posterior.draws[,,1:1000],1:2, mean),2)
-
-
 ```
 The printed results are from the same random walk data. The estimated $A$ is fairly close to the true value. However, the estimated $\Sigma = (1.31, 0.27; 0.27, 1.34)$, which deviates for a decent amount.This is a problematic feature of this specific model. 
 
