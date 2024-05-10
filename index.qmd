@@ -451,9 +451,12 @@ The following function represents the estimation procedure:
 
 bvar_est = function(Y,X){
   
+  stopifnot(is.matrix(Y), is.matrix(X))  #numeric
+  stopifnot(!any(is.na(Y)), !any(is.na(X))) #no NA
+  
   #set parameters
   t = nrow(Y)
-  N = 2 #number of variables
+  N = ncol(Y) #number of variables
   S = 50000 #number of draws
   
   #mle
@@ -514,7 +517,7 @@ The printed results above are for $A$ and $\Sigma$,which is fairly close to the 
 
 ## The Extended Model - Student-t Distributed Error
 
-The model is where $\Omega$ = $diag(\lambda_1, \lambda_2,...,\lambda_T)$. Each lambda independently drawn from an Inverse Gamma 2 distribution $IG2(\nu,\nu)$. The predictive density:
+Following @chan2020large, $\Omega$ will be defined as $diag(\lambda_1, \lambda_2,...,\lambda_T)$, where each lambda is independently drawn from an Inverse Gamma 2 distribution $IG2(\nu,\nu)$. The predictive density:
 
 $$Y|X,A,\Sigma \sim MN_{T \times N} (XA, \Sigma, \Omega)$$
 Therefore the likelihood function:
@@ -545,7 +548,9 @@ $$\lambda_t^{-\frac{\nu_{\lambda}+2}{2}}exp({-\frac{1}{2}}{\frac{\nu_{\lambda}}{
 The posterior density for $\lambda_t$ is:
 
 $$p(\lambda_t|Y,X,A,\Sigma,\nu_{\lambda})= \lambda_t^{-\frac{N+\nu_{\lambda}+2}{2}}exp[{-\frac{1}{2}}{\frac{1}{\lambda_t}}(\nu_{\lambda}+\epsilon_t' \Sigma^{-1}\epsilon_t))]$$
-Which is:
+with $$\epsilon_t = (y_t- x_t'A).$$
+The posterior follows an $IG2$ distribution:
+
 $$\lambda_t|Y,X,A,\Sigma,\nu_{\lambda} \sim IG2(\bar\nu_{\lambda},\bar{s}_{\lambda})$$
 $$\bar\nu_{\lambda} = N+\underline\nu_{\lambda}$$
 $$\bar{s}_{\lambda} =\underline\nu_{\lambda}+\epsilon_t' \Sigma^{-1}\epsilon_t$$
@@ -570,10 +575,13 @@ The following function represents the estimation procedure:
 
 library(MCMCpack)
 bvar_t = function(Y,X){
+  
+stopifnot(is.matrix(Y), is.matrix(X))  #numeric
+stopifnot(!any(is.na(Y)), !any(is.na(X))) #no NA
 
 # Set parameters
 S = 1000
-N = 2
+N = ncol(Y)
 t <- nrow(Y)  
 p = 1
 
@@ -591,28 +599,22 @@ A.prior[2:(1+N),] = diag(N)
 V.prior     = diag(c(k2,k1*((1:p)^(-2))%x%rep(1,N)))
 Sigma.s.prior    = diag(diag(Sigma.hat))
 Sigma.v.prior    = N+1
+
 lambda.nu.prior = 5
 
-#inital lambda/omega
+lambda = rinvgamma(t, lambda.nu.prior/2, lambda.nu.prior/2)
 
-lambda0 = rinvgamma(t, lambda.nu.prior/2, lambda.nu.prior/2)
-omega0 = diag(lambda0)
 
-# Initialize arrays to store posterior draws
-  Sigma.posterior.draws = array(NA, c(N,N,S))
-  A.posterior.draws = array(NA, c((1+p*N),N,S))
+Sigma.posterior.draws <- array(dim = c(N, N, S))
+A.posterior.draws <- array(dim = c(K, N, S))
+lambda.posterior.draws <- array(NA,c(t,S))
   
-  Omega.posterior.draws = array(NA, c(t,t,S+1))
-  Omega.posterior.draws[,,1] = omega0
-  
-  lambda.posterior.draws = array(NA,c(t,S))
-  lambda.s.posterior = array(NA,c(t,S))
-  
-  # diag(1/(lambda.posterior.draws[,s]))
+
   
 for (s in 1:S){ 
 
-    Omega.inv.s = solve(Omega.posterior.draws[,,s])
+    Omega = (diag(lambda))
+    Omega.inv.s = solve(Omega)
     
     V.posterior     = solve(t(X)%*%Omega.inv.s%*%X + solve(V.prior))
     
@@ -622,30 +624,23 @@ for (s in 1:S){
     
     Sigma.v.posterior = nrow(Y) + Sigma.v.prior
     
-    Sigma.posterior.draws[,,s] = rWishart(1, Sigma.v.posterior, solve(Sigma.s.posterior))[,,1]
+    Sigma.inv.draw = rWishart(1, Sigma.v.posterior, solve(Sigma.s.posterior))[,,1]
     Sigma.posterior.draws[,,s] = solve(Sigma.posterior.draws[,,s])
 
     A.posterior.draws[,,s] = matrix(mvtnorm::rmvnorm(1, mean=as.vector(A.posterior), sigma=Sigma.posterior.draws[,,s]%x%V.posterior), ncol=N)
     
-    E.s = Y-X%*%A.posterior.draws[,,s]
-    
     for (x in 1:t){
-    lambda.s.posterior[,s] = lambda.nu.prior + t((E.s)[x,])%*%Sigma.posterior.draws[,,s]%*%(E.s)[x,]
+    u_t <- Y.b[t,] - t(X.b[t,]) %*% A.posterior.draws[,,s]
     }
-    
-    lambda.v.posterior = N + lambda.nu.prior
-    
-    for (x in 1:t){
-    lambda.posterior.draws[x,s] = rinvgamma(1,lambda.v.posterior/2, lambda.s.posterior[x,s]/2)
-    }
-    
-    Omega.posterior.draws[,,s+1] = diag(lambda.posterior.draws[,s])
-} 
-  output = list(
+  
+    lambda = rinvgamma(t, N+lambda.nu.prior, lambda.nu.prior + u_t %*% Sigma.posterior.draws[,,s] %*% t(u_t) )
+    lambda.posterior.draws[,s] <- lambda
+    } 
+    output = list(
     A.posterior.draws = A.posterior.draws,
     Sigma.posterior.draws = Sigma.posterior.draws,
     lambda.posterior.draws = lambda.posterior.draws
-  )
+    )
   return(output)
 }
 
