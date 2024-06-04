@@ -497,16 +497,17 @@ bvar_est = function(Y,X){
   Sigma.E     = apply(Sigma.posterior,1:2,mean)
 
   output = list(
-    A.E = A.E,
-    Sigma.E = Sigma.E
+    A = A.posterior,
+    Sigma = Sigma.posterior
   )
   return(output)
 }
 
+post = bvar_est(Y_rw,X_rw)
 # A posterior mean
-round(bvar_est(Y_rw,X_rw)$A.E,2)
+round(apply(post$A, 1:2, mean),2)
 # Sigma posterior mean
-round(bvar_est(Y_rw,X_rw)$Sigma.E,2)
+round(apply(post$Sigma, 1:2, mean),2)
 
 
 ```
@@ -609,16 +610,18 @@ lambda0 = rinvgamma(t, lambda.nu.prior/2, lambda_nu.prior/2)
   lambda.s.posterior = array(NA,c(t,S))
   
   # diag(1/(lambda.posterior.draws[,s]))
+  Sigma.v.posterior = nrow(Y) + Sigma.v.prior
+  lambda.v.posterior = N + lambda.nu.prior
   
 for (s in 1:S){ 
+    V.prior.inv     = diag(1/diag(V.prior))
+    V.posterior.inv = t(X)%*%diag(1/(lambda.posterior.draws[,s]))%*%X + V.prior.inv
+    V.posterior     = solve(V.posterior.inv)
     
-    V.posterior     = solve(t(X)%*%diag(1/(lambda.posterior.draws[,s]))%*%X + solve(V.prior))
+    A.posterior     = V.posterior%*%(t(X)%*%diag(1/(lambda.posterior.draws[,s]))%*%Y + V.prior.inv%*%A.prior)
     
-    A.posterior     = V.posterior%*%(t(X)%*%diag(1/(lambda.posterior.draws[,s]))%*%Y + solve(V.prior)%*%A.prior)
+    Sigma.s.posterior = t(Y)%*%diag(1/(lambda.posterior.draws[,s]))%*%Y + t(A.prior)%*%V.prior.inv%*%A.prior + Sigma.s.prior - t(A.posterior)%*%V.posterior.inv%*%A.posterior
     
-    Sigma.s.posterior = t(Y)%*%diag(1/(lambda.posterior.draws[,s]))%*%Y + t(A.prior)%*%solve(V.prior)%*%A.prior + Sigma.s.prior - t(A.posterior)%*%solve(V.posterior)%*%A.posterior
-    
-    Sigma.v.posterior = nrow(Y) + Sigma.v.prior
     
     Sigma.posterior.draws[,,s] = riwish(Sigma.v.posterior, Sigma.s.posterior)
 
@@ -627,12 +630,7 @@ for (s in 1:S){
     E.s = Y-X%*%A.posterior.draws[,,s]
     
     for (x in 1:t){
-    lambda.s.posterior[,s] = lambda.nu.prior + t((E.s)[x,])%*%Sigma.posterior.draws[,,s]%*%(E.s)[x,]
-    }
-    
-    lambda.v.posterior = N + lambda.nu.prior
-    
-    for (x in 1:t){
+    lambda.s.posterior[x,s] = lambda.nu.prior + t((E.s)[x,])%*%Sigma.posterior.draws[,,s]%*%(E.s)[x,]
     lambda.posterior.draws[x,s+1] = rinvgamma(1,lambda.v.posterior/2, lambda.s.posterior[x,s]/2)
     }
     
