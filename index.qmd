@@ -627,14 +627,10 @@ for (s in 1:S){
     A.posterior.draws[,,s] = matrix(mvtnorm::rmvnorm(1, mean=as.vector(A.posterior), sigma=Sigma.posterior.draws[,,s]%x%V.posterior), ncol=N)
     
     E.s = Y-X%*%A.posterior.draws[,,s]
-    
-    for (x in 1:t){
-    lambda.s.posterior[,s] = lambda.nu.prior + t((E.s)[x,])%*%Sigma.posterior.draws[,,s]%*%(E.s)[x,]
-    }
-    
     lambda.v.posterior = N + lambda.nu.prior
     
     for (x in 1:t){
+    lambda.s.posterior[x,s] = lambda.nu.prior + t((E.s)[x,])%*%Sigma.posterior.draws[,,s]%*%(E.s)[x,]
     lambda.posterior.draws[x,s+1] = rinvgamma(1,lambda.v.posterior/2, lambda.s.posterior[x,s]/2)
     }
     
