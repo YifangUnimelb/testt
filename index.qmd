@@ -610,6 +610,8 @@ lambda0 = rinvgamma(t, lambda.nu.prior/2, lambda_nu.prior/2)
   lambda.s.posterior = array(NA,c(t,S))
   
   # diag(1/(lambda.posterior.draws[,s]))
+  Sigma.v.posterior = nrow(Y) + Sigma.v.prior
+  lambda.v.posterior = N + lambda.nu.prior
   
 for (s in 1:S){ 
     V.prior.inv     = diag(1/diag(V.prior))
@@ -620,14 +622,12 @@ for (s in 1:S){
     
     Sigma.s.posterior = t(Y)%*%diag(1/(lambda.posterior.draws[,s]))%*%Y + t(A.prior)%*%V.prior.inv%*%A.prior + Sigma.s.prior - t(A.posterior)%*%V.posterior.inv%*%A.posterior
     
-    Sigma.v.posterior = nrow(Y) + Sigma.v.prior
     
     Sigma.posterior.draws[,,s] = riwish(Sigma.v.posterior, Sigma.s.posterior)
 
     A.posterior.draws[,,s] = matrix(mvtnorm::rmvnorm(1, mean=as.vector(A.posterior), sigma=Sigma.posterior.draws[,,s]%x%V.posterior), ncol=N)
     
     E.s = Y-X%*%A.posterior.draws[,,s]
-    lambda.v.posterior = N + lambda.nu.prior
     
     for (x in 1:t){
     lambda.s.posterior[x,s] = lambda.nu.prior + t((E.s)[x,])%*%Sigma.posterior.draws[,,s]%*%(E.s)[x,]
