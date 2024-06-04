@@ -505,9 +505,9 @@ bvar_est = function(Y,X){
 
 post = bvar_est(Y_rw,X_rw)
 # A posterior mean
-round(bvar_est(Y_rw,X_rw)$A.E,2)
+round(apply(post$A, 1:2, mean),2)
 # Sigma posterior mean
-round(bvar_est(Y_rw,X_rw)$Sigma.E,2)
+round(apply(post$Sigma, 1:2, mean),2)
 
 
 ```
