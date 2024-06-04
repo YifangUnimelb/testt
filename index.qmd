@@ -612,12 +612,13 @@ lambda0 = rinvgamma(t, lambda.nu.prior/2, lambda_nu.prior/2)
   # diag(1/(lambda.posterior.draws[,s]))
   
 for (s in 1:S){ 
+    V.prior.inv     = diag(1/diag(V.prior))
+    V.posterior.inv = t(X)%*%diag(1/(lambda.posterior.draws[,s]))%*%X + V.prior.inv
+    V.posterior     = solve(V.posterior.inv)
     
-    V.posterior     = solve(t(X)%*%diag(1/(lambda.posterior.draws[,s]))%*%X + solve(V.prior))
+    A.posterior     = V.posterior%*%(t(X)%*%diag(1/(lambda.posterior.draws[,s]))%*%Y + V.prior.inv%*%A.prior)
     
-    A.posterior     = V.posterior%*%(t(X)%*%diag(1/(lambda.posterior.draws[,s]))%*%Y + solve(V.prior)%*%A.prior)
-    
-    Sigma.s.posterior = t(Y)%*%diag(1/(lambda.posterior.draws[,s]))%*%Y + t(A.prior)%*%solve(V.prior)%*%A.prior + Sigma.s.prior - t(A.posterior)%*%solve(V.posterior)%*%A.posterior
+    Sigma.s.posterior = t(Y)%*%diag(1/(lambda.posterior.draws[,s]))%*%Y + t(A.prior)%*%V.prior.inv%*%A.prior + Sigma.s.prior - t(A.posterior)%*%V.posterior.inv%*%A.posterior
     
     Sigma.v.posterior = nrow(Y) + Sigma.v.prior
     
