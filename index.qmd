@@ -503,6 +503,7 @@ bvar_est = function(Y,X){
   return(output)
 }
 
+post = bvar_est(Y_rw,X_rw)
 # A posterior mean
 round(bvar_est(Y_rw,X_rw)$A.E,2)
 # Sigma posterior mean
