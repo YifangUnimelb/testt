@@ -497,8 +497,8 @@ bvar_est = function(Y,X){
   Sigma.E     = apply(Sigma.posterior,1:2,mean)
 
   output = list(
-    A.E = A.E,
-    Sigma.E = Sigma.E
+    A = A.posterior,
+    Sigma = Sigma.posterior
   )
   return(output)
 }
