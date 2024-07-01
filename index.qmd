@@ -231,7 +231,7 @@ pacf(data_trans$un_em)
 
 ## Augmented Dickey-Fuller
 
-The table shows the result of Augmented Dickey-Fuller test. All time series are non-stationary except for cash rate in this test.
+The table shows the result of Augmented Dickey-Fuller test. All time series are non-stationary at 5% significance level except for cash rate in this test.
 
 ```{r}
 #| echo: false
@@ -261,6 +261,7 @@ kable(adf, digits = 4)
 ```
 
 The table shows the result of Augmented Dickey-Fuller test using the first-differenced data. All variables are integrated of order 1.
+
 ```{r}
 #| echo: false
 #| message: false
@@ -275,7 +276,6 @@ cbind(variable, p_value) |>
   mutate(non_stationary = as.numeric(p_value > 0.05)) |> 
   kable(digits = 4)
 ```
-
 
 # Model
 
@@ -320,15 +320,9 @@ The specifications of $\Omega$ and their meaning will be discussed in the next s
 
 The baseline model is the standard form where $\Omega$ = $I_T$. With predictive density:
 
-$$Y|X,A,\Sigma \sim MN_{T \times N} (XA, \Sigma, I_T)$$
-Therefore the kernel of the likelihood function:
-$$L(A,\Sigma|Y,X) \propto det(\Sigma)^{-\frac{T}{2}}exp(-\frac{1}{2}tr[\Sigma^{-1}(Y-XA)'(Y-XA)])$$
-The matrix-variate normal and inverse Wishart natural conjugate priors for $A$ and $\Sigma$:
+$$Y|X,A,\Sigma \sim MN_{T \times N} (XA, \Sigma, I_T)$$ Therefore the kernel of the likelihood function: $$L(A,\Sigma|Y,X) \propto det(\Sigma)^{-\frac{T}{2}}exp(-\frac{1}{2}tr[\Sigma^{-1}(Y-XA)'(Y-XA)])$$ The matrix-variate normal and inverse Wishart natural conjugate priors for $A$ and $\Sigma$:
 
-$$p(A,\Sigma) = p(A|\Sigma)p(\Sigma)$$
-$$A|\Sigma = MN_{K\times N}(\underline{A},\Sigma,\underline{V})$$
-$$\Sigma \sim IW_N(\underline{S},\underline{\nu})$$
-Therefore the kernel of the prior distribution:
+$$p(A,\Sigma) = p(A|\Sigma)p(\Sigma)$$ $$A|\Sigma = MN_{K\times N}(\underline{A},\Sigma,\underline{V})$$ $$\Sigma \sim IW_N(\underline{S},\underline{\nu})$$ Therefore the kernel of the prior distribution:
 
 $$
 \begin{align}
@@ -340,23 +334,15 @@ $$
 
 Derive the product of the likelihood function and the density function $p(A,\Sigma)$:
 
-$$p(A,\Sigma|Y,X) \propto L(A,\Sigma|Y,X)p(A,\Sigma) $$
-Collect corresponding terms and then we have the full conditional posterior distribution:
+$$p(A,\Sigma|Y,X) \propto L(A,\Sigma|Y,X)p(A,\Sigma) $$ Collect corresponding terms and then we have the full conditional posterior distribution:
 
-$$A|\Sigma = MN_{K\times N}(\bar{A},\Sigma,\bar{V})$$
-$$\Sigma \sim IW_N(\bar{S},\bar{\nu})$$
-where the parameters are:
+$$A|\Sigma = MN_{K\times N}(\bar{A},\Sigma,\bar{V})$$ $$\Sigma \sim IW_N(\bar{S},\bar{\nu})$$ where the parameters are:
 
 $$\bar{V} = (X'X + \underline{V}^{-1})^{-1}$$
 
-$$\bar{A} = \bar{V}(X'Y + \underline{V}^{-1}\underline{A})$$
-$$\bar{S} = \underline{S}+Y'Y + \underline{A}'\underline{V}^{-1}\underline{A}-\bar{A}'\bar{V}^{-1}\bar{A}$$
-$$\bar{\nu}= T + \underline{\nu}$$
-To accommodate non-stationary data, we use minnesota prior:
+$$\bar{A} = \bar{V}(X'Y + \underline{V}^{-1}\underline{A})$$ $$\bar{S} = \underline{S}+Y'Y + \underline{A}'\underline{V}^{-1}\underline{A}-\bar{A}'\bar{V}^{-1}\bar{A}$$ $$\bar{\nu}= T + \underline{\nu}$$ To accommodate non-stationary data, we use minnesota prior:
 
-$$\underline{A} = [0_{N\times1}   \space\space  I_N    \space\space 0_{N \times (p-1N) }]'$$
-$$\underline{V} = diag([\kappa_{2} \space \space  \kappa_{1} (p^{-2} \otimes i_{N}')])$$
-This prior assumes the macroeconomic time-series leans towards a random walk given that except for first lag, all other slope parameters in $\underline{A}$ are zero. The shrinkage parameters in $\underline{V}$ are set to be $\kappa_{2}$, a relatively large value as there is little information about the intercept parameters. And for slope parameters, $\kappa_{1}$ will be significantly smaller and decreasing over lags.
+$$\underline{A} = [0_{N\times1}   \space\space  I_N    \space\space 0_{N \times (p-1N) }]'$$ $$\underline{V} = diag([\kappa_{2} \space \space  \kappa_{1} (p^{-2} \otimes i_{N}')])$$ This prior assumes the macroeconomic time-series leans towards a random walk given that except for first lag, all other slope parameters in $\underline{A}$ are zero. The shrinkage parameters in $\underline{V}$ are set to be $\kappa_{2}$, a relatively large value as there is little information about the intercept parameters. And for slope parameters, $\kappa_{1}$ will be significantly smaller and decreasing over lags.
 
 ```{r}
 #| echo: false
@@ -485,7 +471,7 @@ mcxs2.shade1= rgb(mcxs2.rgb[1],mcxs2.rgb[2],mcxs2.rgb[3], alpha=120, maxColorVal
 
 ```
 
-## Trace Plot
+### Trace Plot
 
 The following diagrams are the trace plots and histograms of the first lag auto-correlative parameter for variable $CPI \underline{} log_t$ in the $A$ matrices in the posterior draws. The autocorrelation is significant while the variance is quite small.
 
@@ -502,6 +488,7 @@ plot.ts(baseline.posterior.draws$Sigma.posterior.draws[1,1,], xlab = "Simulation
 hist(baseline.posterior.draws$Sigma.posterior.draws[1,1,], xlab = "CPI sigma", col = mcxs2, main = '')
 
 ```
+
 Similarly, for $CR_t$, the autocorrelation is significant. Its variance is visibly larger than the previous variable.
 
 ```{r}
@@ -520,51 +507,37 @@ hist(baseline.posterior.draws$Sigma.posterior.draws[5,5,], xlab = "Cash Rate sig
 
 ## The Extended Model 1 - Student-t Distributed Error (BVAR-t)
 
-The model is where $\Omega$ = $diag(\lambda_1, \lambda_2,...,\lambda_T)$. Each lambda independently drawn from an Inverse Gamma 2 distribution $IG2(\nu-2,\nu)$. The predictive density:
+The model is where $\Omega$ = $diag(\lambda_1, \lambda_2,...,\lambda_T)$. Each lambda independently drawn from an Inverse Gamma 2 distribution $IG2(\nu-2,\nu)$. This implies the distribution of error term being:
 
-$$Y|X,A,\Sigma \sim MN_{T \times N} (XA, \Sigma, \Omega)$$
-Therefore the kernel of the likelihood function:
+$$ \epsilon_t \sim N(0, \lambda_t \Sigma)$$
 
-$$L(A,\Sigma,\Omega|Y,X) \propto det(\Omega)^{-\frac{N}{2}}det(\Sigma)^{-\frac{T}{2}}exp(-\frac{1}{2}tr[\Sigma^{-1}(Y-XA)'\Omega^{-1}(Y-XA)])$$
-I assume the same matrix-variate normal and inverse Wishart natural conjugate priors for $A$ and $\Sigma$. Derive the product of the likelihood function and the density function $p(A,\Sigma)$, collect corresponding terms and then we have the full conditional posterior distribution:
+compared to the baseline model, the error distribution has fatter tails which captures sudden spike of variance.The predictive density:
 
-$$A|\Sigma = MN_{K\times N}(\bar{A},\Sigma,\bar{V})$$
-$$\Sigma \sim IW_N(\bar{S},\bar{\nu})$$
-where the parameters are:
+$$Y|X,A,\Sigma \sim MN_{T \times N} (XA, \Sigma, \Omega)$$ Therefore the kernel of the likelihood function:
+
+$$L(A,\Sigma,\Omega|Y,X) \propto det(\Omega)^{-\frac{N}{2}}det(\Sigma)^{-\frac{T}{2}}exp(-\frac{1}{2}tr[\Sigma^{-1}(Y-XA)'\Omega^{-1}(Y-XA)])$$ I assume the same matrix-variate normal and inverse Wishart natural conjugate priors for $A$ and $\Sigma$. Derive the product of the likelihood function and the density function $p(A,\Sigma)$, collect corresponding terms and then we have the full conditional posterior distribution:
+
+$$A|\Sigma = MN_{K\times N}(\bar{A},\Sigma,\bar{V})$$ $$\Sigma \sim IW_N(\bar{S},\bar{\nu})$$ where the parameters are:
 
 $$\bar{V} = (X'\Omega^{-1}X + \underline{V}^{-1})^{-1}$$
 
-$$\bar{A} = \bar{V}(X'\Omega^{-1}Y + \underline{V}^{-1}\underline{A})$$
-$$\bar{S} = \underline{S}+Y'\Omega^{-1}Y + \underline{A}'\underline{V}^{-1}\underline{A}-\bar{A}'\bar{V}^{-1}\bar{A}$$
-$$\bar{\nu}= T + \underline{\nu}$$
-To derive the full conditional posterior for $\lambda_t$, the kernel of likelihood function can be expressed as:
+$$\bar{A} = \bar{V}(X'\Omega^{-1}Y + \underline{V}^{-1}\underline{A})$$ $$\bar{S} = \underline{S}+Y'\Omega^{-1}Y + \underline{A}'\underline{V}^{-1}\underline{A}-\bar{A}'\bar{V}^{-1}\bar{A}$$ $$\bar{\nu}= T + \underline{\nu}$$ To derive the full conditional posterior for $\lambda_t$, the kernel of likelihood function can be expressed as:
 
-$$L(A,\Sigma,\Omega|Y,X) \propto det(\Omega)^{-\frac{N}{2}}exp(-\frac{1}{2}tr[\Sigma^{-1}(Y-XA)'\Omega^{-1}(Y-XA)])$$
-$$= (\prod^{T}_{i = 1} \lambda_t^{-\frac{N}{2}})exp({-\frac{1}{2}}{\frac{1}{\lambda_t}} \sum^{T}_{i =1}\epsilon_t' \Sigma^{-1}\epsilon_t)$$
-That is for each $t$, the likelihood function is:
+$$L(A,\Sigma,\Omega|Y,X) \propto det(\Omega)^{-\frac{N}{2}}exp(-\frac{1}{2}tr[\Sigma^{-1}(Y-XA)'\Omega^{-1}(Y-XA)])$$ $$= (\prod^{T}_{i = 1} \lambda_t^{-\frac{N}{2}})exp({-\frac{1}{2}}{\frac{1}{\lambda_t}} \sum^{T}_{i =1}\epsilon_t' \Sigma^{-1}\epsilon_t)$$ That is for each $t$, the likelihood function is:
 
-$$ \lambda_t^{-\frac{N}{2}}exp({-\frac{1}{2}}{\frac{1}{\lambda_t}} \epsilon_t' \Sigma^{-1}\epsilon_t)$$
-The density function for $\lambda_t \sim IG2(\nu_{\lambda}-2,\nu_{\lambda})$ is:
+$$ \lambda_t^{-\frac{N}{2}}exp({-\frac{1}{2}}{\frac{1}{\lambda_t}} \epsilon_t' \Sigma^{-1}\epsilon_t)$$ The density function for $\lambda_t \sim IG2(\nu_{\lambda}-2,\nu_{\lambda})$ is:
 
-$$\lambda_t^{-\frac{\nu_{\lambda}-2+2}{2}}exp({-\frac{1}{2}}{\frac{\nu_{\lambda}}{\lambda_t}})$$
-The posterior density for $\lambda_t$ is:
+$$\lambda_t^{-\frac{\nu_{\lambda}-2+2}{2}}exp({-\frac{1}{2}}{\frac{\nu_{\lambda}}{\lambda_t}})$$ The posterior density for $\lambda_t$ is:
 
-$$p(\lambda_t|Y,X,A,\Sigma,\nu_{\lambda})= \lambda_t^{-\frac{N+\nu_{\lambda}+2}{2}}exp[{-\frac{1}{2}}{\frac{1}{\lambda_t}}(\nu_{\lambda}-2+\epsilon_t' \Sigma^{-1}\epsilon_t))]$$
-Which is:
-with $$\epsilon_t = (y_t- x_t'A).$$
-The posterior follows an $IG2$ distribution:
-$$\lambda_t|Y,X,A,\Sigma,\nu_{\lambda} \sim IG2(\bar\nu_{\lambda},\bar{s}_{\lambda})$$
-$$\bar\nu_{\lambda} = N+\underline\nu_{\lambda}$$
-$$\bar{s}_{\lambda} =\underline\nu_{\lambda}-2+\epsilon_t' \Sigma^{-1}\epsilon_t$$
-Here, we need a gibb sampler to estimate each parameter. I initialize a $\Omega^{(0)}$, which is a diagonal matrix with each element $\lambda_t$ drawn from $IG2(\underline\nu_{\lambda}-2,\underline\nu_{\lambda})$ and let $\bar\nu_{\lambda}=5$.Then:
+$$p(\lambda_t|Y,X,A,\Sigma,\nu_{\lambda})= \lambda_t^{-\frac{N+\nu_{\lambda}+2}{2}}exp[{-\frac{1}{2}}{\frac{1}{\lambda_t}}(\nu_{\lambda}-2+\epsilon_t' \Sigma^{-1}\epsilon_t))]$$ Which is: with $$\epsilon_t = (y_t- x_t'A).$$ The posterior follows an $IG2$ distribution: $$\lambda_t|Y,X,A,\Sigma,\nu_{\lambda} \sim IG2(\bar\nu_{\lambda},\bar{s}_{\lambda})$$ $$\bar\nu_{\lambda} = N+\underline\nu_{\lambda}$$ $$\bar{s}_{\lambda} =\underline\nu_{\lambda}-2+\epsilon_t' \Sigma^{-1}\epsilon_t$$ Here, we need a gibb sampler to estimate each parameter. I initialize a $\Omega^{(0)}$, which is a diagonal matrix with each element $\lambda_t$ drawn from $IG2(\underline\nu_{\lambda}-2,\underline\nu_{\lambda})$ and let $\bar\nu_{\lambda}=5$.Then:
 
-1. Draw $\Sigma^{(s)}$ from $IW_N(\bar{S},\bar{\nu})$.
+1.  Draw $\Sigma^{(s)}$ from $IW_N(\bar{S},\bar{\nu})$.
 
-2. Draw $A^{(s)}$ from $MN_{K\times N}(\bar{A},\Sigma^{(s)},\bar{V})$.
+2.  Draw $A^{(s)}$ from $MN_{K\times N}(\bar{A},\Sigma^{(s)},\bar{V})$.
 
 Then for each iteration $s$, I draw $T$ $\lambda_t$ using corresponding row in the error matrix:
 
-3. Draw $\lambda_t^{(s)}$ from $IG2(\bar\nu_{\lambda},\bar{s}_{\lambda})$.
+3.  Draw $\lambda_t^{(s)}$ from $IG2(\bar\nu_{\lambda},\bar{s}_{\lambda})$.
 
 Then form $\Omega^{(s)}$ with $\lambda_t^{(s)}$, update all the priors, repeat.
 
@@ -653,6 +626,8 @@ for (s in 1:S){
 bvart = bvar_t(Y_ts,X_ts,p)
 ```
 
+### Trace Plot
+
 ```{r}
 #| echo: true
 #| message: false
@@ -685,10 +660,13 @@ hist(bvart$Sigma.posterior.draws[5,5,], xlab = "Cash Rate sigma", col = mcxs2, m
 
 For this model, the $\Omega = diag(e^{h1},e^{h2},...,e^{h_T})$, where $h_t$ follows an AR(1) process:
 
-$$h_t = h_{t-1}+\eta_t$$
-where $\eta_{t} \sim N(0, \sigma^{2}_{\eta})$ and $h_0 \sim N(0, \delta^2_{\eta})$, which implies $\epsilon_{t} \sim N(0,e^{h_t} \Sigma)$.
+$$h_t = h_{t-1}+\eta_t$$ where $\eta_{t} \sim N(0, \sigma^{2}_{\eta})$ and $h_0 \sim N(0, \delta^2_{\eta})$, which implies $\epsilon_{t} \sim N(0,e^{h_t} \Sigma)$.
 
 ```{r}
+
+#| echo: true
+#| message: false
+#| warning: false
 
 library(mgcv)
 
@@ -880,7 +858,8 @@ sigma2.posterior.sv = bvarsv[["sigma2"]]
 head(round(apply(A.posterior.sv, 1:2, base::mean),6))         # posterior draw A
 head(round(apply(Sigma.posterior.sv, 1:2, base::mean),6))     # posterior draw sigma
 ```
-## Trace Plot
+
+### Trace Plot
 
 ```{r}
 #| echo: true
@@ -895,6 +874,7 @@ plot.ts(Sigma.posterior.sv[1,1,], xlab = "Simulation times S", ylab = "CPI sigma
 hist(Sigma.posterior.sv[1,1,], xlab = "CPI sigma", col = mcxs2, main = '')
 
 ```
+
 ```{r}
 #| echo: true
 #| message: false
@@ -909,8 +889,9 @@ hist(Sigma.posterior.sv[5,5,], xlab = "Cash Rate sigma", col = mcxs2, main = '')
 
 ```
 
-
 ## The Extended Model 3 - T-distributed error and Stochastic Volatility (BVAR-t-sv)
+
+
 
 ## Computational Validity
 
@@ -957,6 +938,7 @@ for (i in 1:p_rw){
 plot(y1, type='l',ylim=c(min(y), max(y)), col= mcxs3, ylab='', xlab='', main='Bivariate Random Walk')
 lines(y2, col= mcxs1, ylab='', xlab='')
 ```
+
 Estimates from Standard BVAR Algorithm:
 
 ```{r define}
@@ -972,6 +954,7 @@ round(rw$A.E,2)
 round(rw$Sigma.E,2)
 
 ```
+
 Estimates from BVAR-t Algorithm:
 
 ```{r}
@@ -1149,7 +1132,7 @@ polygon(c((nrow(Y_ts) + 1):(nrow(Y_ts) + h), rev((nrow(Y_ts) + 1):(nrow(Y_ts) + 
 legend("topleft", legend = c("Base", "T-Distr"), col = c(mcxs1, "red"), lwd = 2, cex = 0.6)
 ```
 
-## Stochastic Volatility 
+## Stochastic Volatility
 
 ```{r}
 #| echo: false
@@ -1261,6 +1244,7 @@ polygon(c((nrow(Y_ts) + 1):(nrow(Y_ts) + h), rev((nrow(Y_ts) + 1):(nrow(Y_ts) + 
 
 legend("topleft", legend = c("Base", "SV"), col = c(mcxs1, "red"), lwd = 2, cex = 0.6)
 ```
+
 ## Stochastic Volatility and T-distributed error
 
 # References
