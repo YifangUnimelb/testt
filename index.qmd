@@ -1,6 +1,6 @@
 ---
 title: "Forecasting Inflation and Interest Rate in Australia"
-author: "Yifang"
+author: "Yifang Wang"
 
 execute:
   echo: false
@@ -8,27 +8,27 @@ execute:
 bibliography: references.bib
 ---
 
-> **Abstract.** This paper forecasts Australian inflation and interest rate using Bayesian Vector Regressive Model with stochastic volatility and a multivariate-t distributed error, with the purpose of allowing time varying volatility and capturing sudden increases in volatility during extreme period such as the COVID-19 pandemic. It is an application of such method, which is often considered as a significant improvement over a standard BVAR, to Australian macroeconomic variables to generate spot and density forecasts using post-COVID data.
+> **Abstract.** This paper forecasts Australian inflation and interest rate using Bayesian Vector Auto Regressive Model with stochastic volatility and a multivariate-t distributed error, with the purpose of allowing time varying volatility and the error to capture sudden increases in volatility during periods with extreme events such as the COVID-19 pandemic. It is an application of such method, which is often considered as a significant improvement over a standard BVAR, to Australian macroeconomic variables to generate spot and density forecasts using post-COVID data.
 
 > **Keywords.** BVARs, Stochastic Volatility, t-distributed error, inflation, interest rate, Australian economy
 
 # Introduction
 
-**Objective:** This paper aims to forecast Australian short term interest rate and inflation. It follows the method in Hartwig(2022), using a BVAR-SV model with its error covariance matrix being multivariate-t distribution.
+**Objective:** This paper aims to forecast Australian short term interest rate (cash rate target) and inflation. It follows the method in Hartwig(2022), using a BVAR-SV model with its error covariance matrix being multivariate-t distribution.
 
-**Question:** Can the model suggested produce reliable spot and density forecast for Australian inflation and interest rate?
+**Question:** Can the model suggested produce reliable spot and density forecasts for Australian inflation and interest rate?
 
 **Motivation:** Volatility variation across time in macroeconomic variables is widely explored in literature (Bloom,2014), which the standard Gaussian error modeling may fail to capture and then leads to unreliable results. Hartwig(2022) suggests that several BVAR models with modified volatility distribution which differentiate from the standard Gaussian perform better under likelihood measurement. The best fitting one with post-COVID19 data is BVAR-t-SV. The stochastic process captures the time persistence of volatility, which is evident in variables such as short term interest rate(Ball and Torous,1999). A multivariate-t distributed error, with relatively fatter tails, can recognize some extreme volatility as temporary spikes instead of persistent effect. The forecast focus on inflation and interest rate due to their strong relevance to policy making and people's daily lives. Many challenges arise post-COVID for government to facilitate the revitalization of the economy, where forecast plays its roles. This research contributes to the existing literature by applying the forecasting method tested to fit the post-COVID data in other countries in Australian economy to facilitate better predictions.
 
 # Data
 
-All data is obtained from the RBA. Daily or monthly data is converted to quarterly format by averaging. Following Chan(2020), other than cash rate and unemployment, variables will be transformed using log difference times 400 in BVAR as a form of growth. These are some standard variables to include in a macroeconomics forecast:
+All data is obtained from the RBA. Daily or monthly data is converted to quarterly format by averaging. Exchange rate, cash rate and unemployment rate are in their original format.Other variables will be log transformed. These are variables included in this paper:
 
 **Cash rate:** the cash rate target in percent (series_id:FIRMMCRTD)
 
 **Money aggregate(M1):** the seasonal adjusted M1 aggregate in \$billion (series_id:DMAM1S)
 
-**Money aggregate(M3):** the seasonal adjusted M3 aggregate in \$billion (series_id:DMAM3S)
+**Exchange Rate AUD/USD:** the exchange rate in USD per Australian dollar (series_id:FXRUSD)
 
 **Consumer Price Index** Consumer Price Index (series_id:GCPIAG)
 
@@ -36,13 +36,26 @@ All data is obtained from the RBA. Daily or monthly data is converted to quarter
 
 **Unemployment:** Unemployment rate in percent (series_id:GLFSUPSA)
 
-The data window covers 1990 Q1 to 2023 Q4, as the most up-to-date post-COVID data in Australia, similar to Hartwig(2022). Cash rate, real GDP and unemployment rate are very standard variables to include while doing forecast with inflation as the cyclical variables(eg.Stock and Watson(1999)). Money aggregate as a supply side driver for commodity price, are included as well(eg. Dhakal et al(1994)).
+The data window covers 1990 Q1 to 2023 Q4, as the most up-to-date post-COVID data in Australia, similar to Hartwig(2022). Cash rate, real GDP and unemployment rate are very standard variables to include while doing forecast with inflation as the cyclical variables(eg.Stock and Watson(1999)). Money aggregate as a supply side driver for commodity price is included as well(eg. Dhakal et al(1994)). The exchange rate AUD/USD captures the prices trading with Australia's biggest international trading partner.
 
 ```{r}
 #| echo: false
 #| message: false
 #| warning: false
 
+library(mvtnorm)
+library(plot3D)
+library(MASS)
+library(HDInterval)
+
+```
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+
+library(readabs)
 library(readrba)
 
 un_em = read_rba(series_id = "GLFSURSA") 
@@ -52,7 +65,7 @@ cpi = read_rba(series_id = "GCPIAG")
 cr = read_rba(series_id = "FIRMMCRTD")
 
 m1 = read_rba(series_id = "DMAM1S") 
-m3 = read_rba(series_id = "DMAM3S") 
+ex = read_rba(series_id = "FXRUSD") 
 
 library(dplyr)
 library(lubridate)
@@ -61,14 +74,14 @@ cr <- cr %>% filter(date > as.Date("1989-12-31"))
 cpi <- cpi %>% filter(date > as.Date("1989-12-31"))
 gdp <- gdp %>% filter(date > as.Date("1989-12-31"))
 m1 <- m1 %>% filter(date > as.Date("1989-12-31"))
-m3 <- m3 %>% filter(date > as.Date("1989-12-31"))
+ex <- ex %>% filter(date > as.Date("1989-12-31"))
 un_em <- un_em %>% filter(date > as.Date("1989-12-31"))
 
 cr <- cr %>% filter(date < as.Date("2024-01-01"))
 cpi <- cpi %>% filter(date < as.Date("2024-01-01"))
 gdp <- gdp %>% filter(date < as.Date("2024-01-01"))
 m1 <- m1 %>% filter(date < as.Date("2024-01-01"))
-m3 <- m3 %>% filter(date < as.Date("2024-01-01"))
+ex <- ex %>% filter(date < as.Date("2024-01-01"))
 un_em <- un_em %>% filter(date < as.Date("2024-01-01"))
 
 
@@ -77,7 +90,7 @@ m1 <- m1 %>%
   group_by(Quarter) %>%
   summarize(Average = mean(value, na.rm = TRUE))
 
-m3 <- m3 %>%
+ex <- ex %>%
   mutate(Quarter = paste(year(date), quarter(date), sep = "Q")) %>%
   group_by(Quarter) %>%
   summarize(Average = mean(value, na.rm = TRUE))
@@ -111,21 +124,21 @@ data <- bind_cols(
   cr %>% select(Average),
   gdp %>% select(value),
   m1 %>% select(Average),
-  m3 %>% select(Average),
+  ex %>% select(Average),
   un_em %>% select(Average)# Add as many as needed
 )
 
-data <- data %>% rename(cpi = value...2, cr = Average...3, gdp = value...4, m1 = Average...5, m3 = Average...6, un_em = Average...7)
+data <- data %>% rename(cpi = value...2, cr = Average...3, gdp = value...4, m1 = Average...5, ex = Average...6, un_em = Average...7)
 
 data_trans <- data %>%
-  mutate(cpi_log = c(log(cpi)), gdp_log =c(log(gdp)), m1_log =c(log(m1)), m3_log =c(log(m3)))
+  mutate(cpi_log = c(log(cpi)), gdp_log =c(log(gdp)), m1_log =c(log(m1)))
 
-data_trans <- data_trans %>% select(date, cpi_log, gdp_log, m1_log, m3_log, cr, un_em)
+data_trans <- data_trans %>% select(date, cpi_log, gdp_log, m1_log, ex, cr, un_em)
 ```
 
 ## Time Series Plot
 
-The following are the time series plot of raw CPI, real GDP, M1 and M3 monetary aggregate, unemployment rate and cash rate on quarterly basis. Note the former 4 variables all display a clear growth trend. Unemployment and cash rate are generally decreasing with fluctuations.
+The following are the time series plot all variables.
 
 ```{r times series raw}
 #| echo: false
@@ -137,76 +150,39 @@ library(patchwork)
 
 theme_set(theme_bw())
 
-pcpi <- ggplot(data, aes(date,cpi)) + geom_line(size = 0.25)+labs(title = "CPI") +
+pcpi <- ggplot(data_trans, aes(date,cpi_log)) + geom_line(size = 0.25)+labs(title = "CPI") +
   theme(plot.title = element_text(size = 10),
         axis.title.x = element_text(size = 8),
         axis.title.y = element_text(size = 8))
 
-pgdp <- ggplot(data, aes(date,gdp)) + geom_line(size = 0.25)+labs(title = "GDP") +
+pgdp <- ggplot(data_trans, aes(date,gdp_log)) + geom_line(size = 0.25)+labs(title = "GDP") +
   theme(plot.title = element_text(size = 10),
         axis.title.x = element_text(size = 8),
         axis.title.y = element_text(size = 8))
 
 
-pm1 <- ggplot(data, aes(date,m1)) +geom_line(size = 0.25)+labs(title = "M1") +
+pm1 <- ggplot(data_trans, aes(date,m1_log)) +geom_line(size = 0.25)+labs(title = "M1") +
   theme(plot.title = element_text(size = 10),
         axis.title.x = element_text(size = 8),
         axis.title.y = element_text(size = 8))
 
-pm3 <- ggplot(data, aes(date,m3)) + geom_line(size = 0.25)+labs(title = "M3") +
+pex <- ggplot(data_trans, aes(date,ex)) + geom_line(size = 0.25)+labs(title = "ER/USD") +
   theme(plot.title = element_text(size = 10),
         axis.title.x = element_text(size = 8),
         axis.title.y = element_text(size = 8))
 
-pcr <- ggplot(data, aes(date,cr)) + geom_line(size = 0.25)+labs(title = "cash rate") +
+pcr <- ggplot(data_trans, aes(date,cr)) + geom_line(size = 0.25)+labs(title = "cash rate") +
   theme(plot.title = element_text(size = 10),
         axis.title.x = element_text(size = 8),
         axis.title.y = element_text(size = 8))
 
-pun_em <- ggplot(data, aes(date,un_em)) + geom_line(size = 0.25)+labs(title = "unemployment rate") +
+pun_em <- ggplot(data_trans, aes(date,un_em)) + geom_line(size = 0.25)+labs(title = "unemployment rate") +
   theme(plot.title = element_text(size = 10),
         axis.title.x = element_text(size = 8),
         axis.title.y = element_text(size = 8))
 
  
-(pcpi + pgdp )/(pm1 + pm3 )/(pcr + pun_em)
-
-```
-
-The log level of CPI, real GDP, M1 and M3 aggregate were plotted here.
-
-```{r time series log}
-#| echo: false
-#| message: false
-#| warning: false
-
-library(ggplot2)
-library(patchwork)
-
-theme_set(theme_bw())
-
-pcpil <- ggplot(data_trans, aes(date,cpi_log)) + geom_line(size = 0.25)+labs(title = "log CPI") +
-  theme(plot.title = element_text(size = 10),
-        axis.title.x = element_text(size = 8),
-        axis.title.y = element_text(size = 8))
-
-pgdpl <- ggplot(data_trans, aes(date,gdp_log)) + geom_line(size = 0.25)+labs(title = "log GDP") +
-  theme(plot.title = element_text(size = 10),
-        axis.title.x = element_text(size = 8),
-        axis.title.y = element_text(size = 8))
-
-
-pm1l <- ggplot(data_trans, aes(date,m1_log)) +geom_line(size = 0.25)+labs(title = "log M1") +
-  theme(plot.title = element_text(size = 10),
-        axis.title.x = element_text(size = 8),
-        axis.title.y = element_text(size = 8))
-
-pm3l <- ggplot(data_trans, aes(date,m3_log)) + geom_line(size = 0.25)+labs(title = "log M3") +
-  theme(plot.title = element_text(size = 10),
-        axis.title.x = element_text(size = 8),
-        axis.title.y = element_text(size = 8))
- 
-(pcpil + pgdpl )/(pm1l + pm3l )
+(pcpi + pgdp )/(pm1 + pex )/(pcr + pun_em)
 
 ```
 
@@ -214,7 +190,7 @@ pm3l <- ggplot(data_trans, aes(date,m3_log)) + geom_line(size = 0.25)+labs(title
 
 The following ACF plots of all transformed variables show autocorrelation over a large number of lags, therefore, likely to be non-stationary.
 
-```{r ACF}
+```{r}
 #| echo: false
 #| message: false
 #| warning: false
@@ -226,7 +202,7 @@ par(mfrow=c(2,3))
 acf(data_trans$cpi_log)
 acf(data_trans$gdp_log)
 acf(data_trans$m1_log)
-acf(data_trans$m3_log)
+acf(data_trans$ex)
 acf(data_trans$cr)
 acf(data_trans$un_em)
 
@@ -234,7 +210,7 @@ acf(data_trans$un_em)
 
 In PACF plots, significant correlations were only observed in the first lag for variables except for unemployment rate. It demonstrates partial autocorrelation for the first and second lag, also in some lags order 15 to 20.
 
-```{r PACF}
+```{r}
 #| echo: false
 #| message: false
 #| warning: false
@@ -246,7 +222,7 @@ par(mfrow=c(2,3))
 pacf(data_trans$cpi_log)
 pacf(data_trans$gdp_log)
 pacf(data_trans$m1_log)
-pacf(data_trans$m3_log)
+pacf(data_trans$ex)
 pacf(data_trans$cr)
 pacf(data_trans$un_em)
 
@@ -284,8 +260,7 @@ adf       = cbind(variable, p_value) |>
 kable(adf, digits = 4)
 ```
 
-The first difference ADF test only indicates non-stationarity for log m3 money supply.
-
+The table shows the result of Augmented Dickey-Fuller test using the first-differenced data. All variables are integrated of order 1.
 ```{r}
 #| echo: false
 #| message: false
@@ -301,25 +276,8 @@ cbind(variable, p_value) |>
   kable(digits = 4)
 ```
 
-All variables are integrated of order 2.
 
-```{r}
-#| echo: false
-#| message: false
-#| warning: false
-
-Y_diff2    = diff(Y_diff)
-p_value   = sapply(1:N, \(i) adf.test(Y_diff2[, i])$p.value)
-variable  = colnames(Y)
-
-cbind(variable, p_value) |> 
-  data.frame() |> 
-  mutate(p_value = round(as.numeric(p_value), 4)) |> 
-  mutate(non_stationary = as.numeric(p_value > 0.05)) |> 
-  kable(digits = 4)
-```
-
-#Model
+# Model
 
 Here presents the Bayesian VAR in the general form of a VAR(p):
 
@@ -331,6 +289,8 @@ where
 -   $n$ is the number of variables
 -   $a_0$ is the $n \times 1$ intercept vector
 -   $A_p$ is $n \times n$ coefficient matrix for each lag order $p$.
+
+$$y_t = (CPI \underline{} log_t, GDP \underline{} log_t, M1 \underline{} log_t, ER_t, CR_t, Unemployment_t)' $$
 
 In compact matrix notation:
 
@@ -361,14 +321,27 @@ The specifications of $\Omega$ and their meaning will be discussed in the next s
 The baseline model is the standard form where $\Omega$ = $I_T$. With predictive density:
 
 $$Y|X,A,\Sigma \sim MN_{T \times N} (XA, \Sigma, I_T)$$
-Therefore the likelihood function:
+Therefore the kernel of the likelihood function:
 $$L(A,\Sigma|Y,X) \propto det(\Sigma)^{-\frac{T}{2}}exp(-\frac{1}{2}tr[\Sigma^{-1}(Y-XA)'(Y-XA)])$$
 The matrix-variate normal and inverse Wishart natural conjugate priors for $A$ and $\Sigma$:
 
 $$p(A,\Sigma) = p(A|\Sigma)p(\Sigma)$$
 $$A|\Sigma = MN_{K\times N}(\underline{A},\Sigma,\underline{V})$$
 $$\Sigma \sim IW_N(\underline{S},\underline{\nu})$$
-Derive the product of the likelihood function and the density function $p(A,\Sigma)$, collect corresponding terms and then we have the full conditional posterior distribution:
+Therefore the kernel of the prior distribution:
+
+$$
+\begin{align}
+p(A,\Sigma) &\propto  \det(\Sigma)^{-\frac{N+K+\underline{v}+1}{2}} \\
+&\times exp\{-\frac{1}{2}tr[\Sigma^{-1}(A-\underline{A}) \underline{V}^{-1}(A-\underline{A})]\} \\
+&\times exp\{-\frac{1}{2}tr[\Sigma^{-1}\underline{S}]\}
+\end{align}
+$$
+
+Derive the product of the likelihood function and the density function $p(A,\Sigma)$:
+
+$$p(A,\Sigma|Y,X) \propto L(A,\Sigma|Y,X)p(A,\Sigma) $$
+Collect corresponding terms and then we have the full conditional posterior distribution:
 
 $$A|\Sigma = MN_{K\times N}(\bar{A},\Sigma,\bar{V})$$
 $$\Sigma \sim IW_N(\bar{S},\bar{\nu})$$
@@ -383,61 +356,20 @@ To accommodate non-stationary data, we use minnesota prior:
 
 $$\underline{A} = [0_{N\times1}   \space\space  I_N    \space\space 0_{N \times (p-1N) }]'$$
 $$\underline{V} = diag([\kappa_{2} \space \space  \kappa_{1} (p^{-2} \otimes i_{N}')])$$
-```{r setup, include=FALSE}
-#| echo: false
-#| message: false
-#| warning: false
-library(mvtnorm)
-library(plot3D)
-library(MASS)
-library(HDInterval)
-```
-
-The following contains code for the estimation and a results demonstration with a bivariate Gaussian random walk data, with true parameter $A = [0_{2 \times 1} \space I_2]'$ and $\Sigma = I_2$.
+This prior assumes the macroeconomic time-series leans towards a random walk given that except for first lag, all other slope parameters in $\underline{A}$ are zero. The shrinkage parameters in $\underline{V}$ are set to be $\kappa_{2}$, a relatively large value as there is little information about the intercept parameters. And for slope parameters, $\kappa_{1}$ will be significantly smaller and decreasing over lags.
 
 ```{r}
 #| echo: false
 #| message: false
 #| warning: false
-# bivariate gaussian random walk
-set.seed(123456)
-library(MASS)
+# construct X and Y with data for this paper
+p = 4
 
-# Set parameters
-t <- 100  # Number of observations
-mean <- c(0, 0)  # Mean of the bi-variate normal distribution
-cov <- diag(2)  # Identity matrix of order 2 as the covariance matrix
-
-# Simulate random steps
-steps <- mvrnorm(t, mu = mean, Sigma = cov)
-
-y1 = as.matrix(cumsum(steps[,1]))
-y2 = as.matrix(cumsum(steps[,2]))
-y = cbind(y1,y2)
-```
-
-```{r}
-#| echo: false
-#| message: true
-#| warning: false
-plot(y1, type='l',ylim=c(min(y), max(y)), col='red', ylab='', xlab='', main='Bivariate Random Walk')
-lines(y2, col='blue', ylab='', xlab='')
-```
-
-````{r define}
-#| echo: false
-#| message: false
-#| warning: false
-# construct X and Y with random walk data
-p = 1
-
-y  = ts(y, names=c("v1","v2"))
-
-Y_rw = y[(p+1):nrow(y),]
-X_rw = matrix(1,nrow(y)-p,1)
+Y_ts = Y[(p+1):nrow(Y),]
+X_ts = matrix(1,nrow(Y)-p,1)
 
 for (i in 1:p){
-  X_rw     = cbind(X_rw,y[(p+1):nrow(y)-i,])
+  X_ts     = cbind(X_ts,Y[(p+1):nrow(Y)-i,])
 }
 ```
 
@@ -449,12 +381,12 @@ The following function represents the estimation procedure:
 #| warning: false
 #Function form of basic model
 
-bvar_est = function(Y,X){
+bvar_est = function(Y,X,p){
   
   #set parameters
   t = nrow(Y)
   N = ncol(Y) #number of variables
-  S = 50000 #number of draws
+  S = 500 #number of draws
   
   #mle
   A.hat  = solve(t(X)%*%X)%*%t(X)%*%Y
@@ -498,29 +430,102 @@ bvar_est = function(Y,X){
 
   output = list(
     A.E = A.E,
-    Sigma.E = Sigma.E
+    Sigma.E = Sigma.E,
+    A.posterior.draws = A.posterior,
+    Sigma.posterior.draws = Sigma.posterior
   )
   return(output)
 }
+```
 
-# A posterior mean
-round(bvar_est(Y_rw,X_rw)$A.E,2)
-# Sigma posterior mean
-round(bvar_est(Y_rw,X_rw)$Sigma.E,2)
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+baseline.posterior.draws = bvar_est(Y_ts, X_ts,p)
+```
 
+## Posterior Draws
+
+For matrix $A$:
+
+```{r}
+#| echo: true
+#| message: true
+#| warning: false
+head(round(apply(baseline.posterior.draws$A.posterior.draws,1:2,base::mean),6))
+```
+
+For matrix $\Sigma$:
+
+```{r}
+#| echo: true
+#| message: true
+#| warning: false
+head(round(apply(baseline.posterior.draws$Sigma.posterior.draws,1:2,base::mean),6))
+```
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| results: hide
+
+# Define colors
+mcxs1  = "#05386B"
+mcxs2  = "#379683"
+mcxs3  = "#5CDB95"
+mcxs4  = "#8EE4AF"
+mcxs5  = "#EDF5E1"
+
+mcxs1.rgb   = col2rgb(mcxs1)
+mcxs1.shade1= rgb(mcxs1.rgb[1],mcxs1.rgb[2],mcxs1.rgb[3], alpha=120, maxColorValue=255)
+mcxs2.rgb   = col2rgb(mcxs2)
+mcxs2.shade1= rgb(mcxs2.rgb[1],mcxs2.rgb[2],mcxs2.rgb[3], alpha=120, maxColorValue=255)
 
 ```
-The printed results above are for $A$ and $\Sigma$,which is fairly close to the true value. 
 
-## The Extended Model - Student-t Distributed Error
+## Trace Plot
 
-The model is where $\Omega$ = $diag(\lambda_1, \lambda_2,...,\lambda_T)$. Each lambda independently drawn from an Inverse Gamma 2 distribution $IG2(\nu,\nu)$. The predictive density:
+The following diagrams are the trace plots and histograms of the first lag auto-correlative parameter for variable $CPI \underline{} log_t$ in the $A$ matrices in the posterior draws. The autocorrelation is significant while the variance is quite small.
+
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+par(mfrow=c(2,2), mar=c(4,4,2,2))
+
+plot.ts(baseline.posterior.draws$A.posterior.draws[2,1,], xlab = "Simulation times S", ylab = "CPI", col = mcxs1)
+hist(baseline.posterior.draws$A.posterior.draws[2,1,], xlab = "CPI", col = mcxs1, main = '')
+
+plot.ts(baseline.posterior.draws$Sigma.posterior.draws[1,1,], xlab = "Simulation times S", ylab = "CPI sigma", col = mcxs2)
+hist(baseline.posterior.draws$Sigma.posterior.draws[1,1,], xlab = "CPI sigma", col = mcxs2, main = '')
+
+```
+Similarly, for $CR_t$, the autocorrelation is significant. Its variance is visibly larger than the previous variable.
+
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+par(mfrow=c(2,2), mar=c(4,4,2,2))
+
+plot.ts(baseline.posterior.draws$A.posterior.draws[6,5,], xlab = "Simulation times S", ylab = "Cash Rate", col = mcxs1)
+hist(baseline.posterior.draws$A.posterior.draws[6,5,], xlab = "Cash Rate", col = mcxs1, main = '')
+
+plot.ts(baseline.posterior.draws$Sigma.posterior.draws[5,5,], xlab = "Simulation times S", ylab = "Cash Rate sigma", col = mcxs2)
+hist(baseline.posterior.draws$Sigma.posterior.draws[5,5,], xlab = "Cash Rate sigma", col = mcxs2, main = '')
+
+```
+
+## The Extended Model 1 - Student-t Distributed Error (BVAR-t)
+
+The model is where $\Omega$ = $diag(\lambda_1, \lambda_2,...,\lambda_T)$. Each lambda independently drawn from an Inverse Gamma 2 distribution $IG2(\nu-2,\nu)$. The predictive density:
 
 $$Y|X,A,\Sigma \sim MN_{T \times N} (XA, \Sigma, \Omega)$$
-Therefore the likelihood function:
+Therefore the kernel of the likelihood function:
 
 $$L(A,\Sigma,\Omega|Y,X) \propto det(\Omega)^{-\frac{N}{2}}det(\Sigma)^{-\frac{T}{2}}exp(-\frac{1}{2}tr[\Sigma^{-1}(Y-XA)'\Omega^{-1}(Y-XA)])$$
-
 I assume the same matrix-variate normal and inverse Wishart natural conjugate priors for $A$ and $\Sigma$. Derive the product of the likelihood function and the density function $p(A,\Sigma)$, collect corresponding terms and then we have the full conditional posterior distribution:
 
 $$A|\Sigma = MN_{K\times N}(\bar{A},\Sigma,\bar{V})$$
@@ -539,19 +544,19 @@ $$= (\prod^{T}_{i = 1} \lambda_t^{-\frac{N}{2}})exp({-\frac{1}{2}}{\frac{1}{\lam
 That is for each $t$, the likelihood function is:
 
 $$ \lambda_t^{-\frac{N}{2}}exp({-\frac{1}{2}}{\frac{1}{\lambda_t}} \epsilon_t' \Sigma^{-1}\epsilon_t)$$
-The density function for $\lambda_t \sim IG2(\nu,\nu)$ is:
+The density function for $\lambda_t \sim IG2(\nu_{\lambda}-2,\nu_{\lambda})$ is:
 
-$$\lambda_t^{-\frac{\nu_{\lambda}+2}{2}}exp({-\frac{1}{2}}{\frac{\nu_{\lambda}}{\lambda_t}})$$
+$$\lambda_t^{-\frac{\nu_{\lambda}-2+2}{2}}exp({-\frac{1}{2}}{\frac{\nu_{\lambda}}{\lambda_t}})$$
 The posterior density for $\lambda_t$ is:
 
-$$p(\lambda_t|Y,X,A,\Sigma,\nu_{\lambda})= \lambda_t^{-\frac{N+\nu_{\lambda}+2}{2}}exp[{-\frac{1}{2}}{\frac{1}{\lambda_t}}(\nu_{\lambda}+\epsilon_t' \Sigma^{-1}\epsilon_t))]$$
+$$p(\lambda_t|Y,X,A,\Sigma,\nu_{\lambda})= \lambda_t^{-\frac{N+\nu_{\lambda}+2}{2}}exp[{-\frac{1}{2}}{\frac{1}{\lambda_t}}(\nu_{\lambda}-2+\epsilon_t' \Sigma^{-1}\epsilon_t))]$$
 Which is:
 with $$\epsilon_t = (y_t- x_t'A).$$
 The posterior follows an $IG2$ distribution:
 $$\lambda_t|Y,X,A,\Sigma,\nu_{\lambda} \sim IG2(\bar\nu_{\lambda},\bar{s}_{\lambda})$$
 $$\bar\nu_{\lambda} = N+\underline\nu_{\lambda}$$
-$$\bar{s}_{\lambda} =\underline\nu_{\lambda}+\epsilon_t' \Sigma^{-1}\epsilon_t$$
-Here, we need a gibb sampler to estimate each parameter. I initialize a $\Omega^{(0)}$, which is a diagonal matrix with each element $\lambda_t$ drawn from $IG2(\bar\nu_{\lambda},\bar\nu_{\lambda})$ and let $\bar\nu_{\lambda}=5$.Then:
+$$\bar{s}_{\lambda} =\underline\nu_{\lambda}-2+\epsilon_t' \Sigma^{-1}\epsilon_t$$
+Here, we need a gibb sampler to estimate each parameter. I initialize a $\Omega^{(0)}$, which is a diagonal matrix with each element $\lambda_t$ drawn from $IG2(\underline\nu_{\lambda}-2,\underline\nu_{\lambda})$ and let $\bar\nu_{\lambda}=5$.Then:
 
 1. Draw $\Sigma^{(s)}$ from $IW_N(\bar{S},\bar{\nu})$.
 
@@ -572,13 +577,12 @@ The following function represents the estimation procedure:
 
 library(MCMCpack)
 
-bvar_t = function(Y,X){
+bvar_t = function(Y,X,p){
 
 # Set parameters
 S = 1000
 N = ncol(Y)
 t <- nrow(Y)  
-p = 1
 
 #mle
 
@@ -587,7 +591,7 @@ Sigma.hat  = t(Y-X%*%A.hat)%*%(Y-X%*%A.hat)/t
 
 #minnesota
 
-k1     = 0.02^2
+k1     = 5
 k2     = 100
 A.prior <- matrix(0,nrow(A.hat),ncol(A.hat))
 A.prior[2:(1+N),] = diag(N)
@@ -598,7 +602,7 @@ lambda.nu.prior = 5
 
 #inital lambda/omega
 
-lambda0 = rinvgamma(t, lambda.nu.prior/2, lambda_nu.prior/2)
+lambda0 = (lambda.nu.prior-2)/rchisq(t,lambda.nu.prior)
 
 # Initialize arrays to store posterior draws
   Sigma.posterior.draws = array(NA, c(N,N,S))
@@ -607,8 +611,6 @@ lambda0 = rinvgamma(t, lambda.nu.prior/2, lambda_nu.prior/2)
   lambda.posterior.draws = array(NA,c(t,S+1))
   lambda.posterior.draws[,1] = lambda0 
   lambda.s.posterior = array(NA,c(t,S))
-  
-  # diag(1/(lambda.posterior.draws[,s]))
   
 for (s in 1:S){ 
     
@@ -627,13 +629,13 @@ for (s in 1:S){
     E.s = Y-X%*%A.posterior.draws[,,s]
     
     for (x in 1:t){
-    lambda.s.posterior[,s] = lambda.nu.prior + t((E.s)[x,])%*%Sigma.posterior.draws[,,s]%*%(E.s)[x,]
+    lambda.s.posterior[,s] = lambda.nu.prior-2 + t((E.s)[x,])%*%Sigma.posterior.draws[,,s]%*%(E.s)[x,]
     }
     
     lambda.v.posterior = N + lambda.nu.prior
     
     for (x in 1:t){
-    lambda.posterior.draws[x,s+1] = rinvgamma(1,lambda.v.posterior/2, lambda.s.posterior[x,s]/2)
+    lambda.posterior.draws[x,s+1] = lambda.s.posterior[x,s]/rchisq(1,lambda.v.posterior)
     }
     
 } 
@@ -645,17 +647,620 @@ for (s in 1:S){
   return(output)
 }
 
-round(apply(bvar_t(Y_rw,X_rw)$A.posterior.draws[,,s], 1:2, mean),2)
+```
 
-round(mean(bvar_t(Y_rw,X_rw)$lambda.posterior.draws[,s]),2)
+```{r}
+bvart = bvar_t(Y_ts,X_ts,p)
+```
 
-round(apply(bvar_t(Y_rw,X_rw)$Sigma.posterior.draws[,,s], 1:2, mean),2)*round(mean(bvar_t(Y_rw,X_rw)$lambda.posterior.draws[,s]),2)
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+par(mfrow=c(2,2), mar=c(4,4,2,2))
 
+plot.ts(bvart$A.posterior.draws[2,1,], xlab = "Simulation times S", ylab = "CPI", col = mcxs1)
+hist(bvart$A.posterior.draws[2,1,], xlab = "CPI", col = mcxs1, main = '')
 
-
+plot.ts(bvart$Sigma.posterior.draws[1,1,], xlab = "Simulation times S", ylab = "CPI sigma", col = mcxs2)
+hist(bvart$Sigma.posterior.draws[1,1,], xlab = "CPI sigma", col = mcxs2, main = '')
 
 ```
-The printed results are from the same random walk data. The estimated $A$ is fairly close to the true value. However, the estimated $\Sigma = (1.31, 0.27; 0.27, 1.34)$, which deviates for a decent amount.This is a problematic feature of this specific model. 
 
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+par(mfrow=c(2,2), mar=c(4,4,2,2))
+
+plot.ts(bvart$A.posterior.draws[6,5,], xlab = "Simulation times S", ylab = "Cash Rate", col = mcxs1)
+hist(bvart$A.posterior.draws[6,5,], xlab = "Cash Rate", col = mcxs1, main = '')
+
+plot.ts(bvart$Sigma.posterior.draws[5,5,], xlab = "Simulation times S", ylab = "Cash Rate sigma", col = mcxs2)
+hist(bvart$Sigma.posterior.draws[5,5,], xlab = "Cash Rate sigma", col = mcxs2, main = '')
+
+```
+
+## The Extended Model 2 - Stochastic Volatility (BVAR-sv)
+
+For this model, the $\Omega = diag(e^{h1},e^{h2},...,e^{h_T})$, where $h_t$ follows an AR(1) process:
+
+$$h_t = h_{t-1}+\eta_t$$
+where $\eta_{t} \sim N(0, \sigma^{2}_{\eta})$ and $h_0 \sim N(0, \delta^2_{\eta})$, which implies $\epsilon_{t} \sim N(0,e^{h_t} \Sigma)$.
+
+```{r}
+
+library(mgcv)
+
+
+bvar_sv = function (Y, X, p){
+  
+  A.hat       = solve(t(X)%*%X)%*%t(X)%*%Y
+  Sigma.hat   = t(Y-X%*%A.hat)%*%(Y-X%*%A.hat)/nrow(Y)
+  
+  N = ncol(Y)
+  K = ncol(X)
+  T = nrow(Y)
+
+  kappa.1   = 5
+  kappa.2   = 100
+  
+  A.prior     = matrix(0, K , N)
+  A.prior[2:(N+1),] = diag(N)
+  V.prior     = diag(c(kappa.2,kappa.1*((1:p)^(-2))%x%rep(1,N)))
+  V.prior.inv = diag(1/diag(V.prior))
+  S.prior     = diag(diag(Sigma.hat))
+  nu.prior    = N+2
+
+  S = 500
+  
+  # aux is a list containing:
+  #   Y - a TxN matrix
+  #   X - a TxK matrix
+  #   H - a Tx1 matrix
+  #   h0 - a scalar
+  #   sigma.v2 - a scalar
+  #   s - a Tx1 matrix
+  #   A - a KxN matrix
+  #   Sigma - an NxN matrix
+  #   sigma2 - a Tx1 matrix
+  #
+  # priors is a list containing:
+  #   h0.v - a positive scalar
+  #   h0.m - a scalar
+  #   sigmav.s - a positive scalar
+  #   sigmav.nu - a positive scalar
+  #   HH - a TxT matrix
+  
+  T             = dim(Y)[1]
+  N             = dim(Y)[2]
+  K             = dim(X)[2] 
+
+  H             = diag(T)
+  sdiag(H,-1)   = -1
+  HH            = 2*diag(T)
+  sdiag(HH,-1)  = -1
+  sdiag(HH,1)   = -1
+  
+  HH                = HH
+  h0.m              = 0
+  h0.v              = 1
+  sigmav.s          = 1
+  sigmav.nu         = 1
+
+  posteriors    = list(                        
+    H           = matrix(NA,T,S),
+    sigma2      = matrix(NA,T,S),
+    s           = matrix(NA,T,S),
+    h0          = rep(NA,S),
+    sigma.v2    = rep(NA,S),
+    A           = array(NA, c((1 + N * p), N, S)),
+    Sigma       = array(NA, c(N, N, S))
+  )
+  
+  aux        = list(
+    Y        = Y,
+    X        = X,
+    H        = matrix(1, T, 1),
+    h0       = 0,
+    sigma.v2 = 1,
+    s        = matrix(1, T, 1),
+    A        = matrix(0, K, N),
+    Sigma    = matrix(0, N, N),             
+    sigma2   = matrix(1, T, 1)
+  )
+  
+  for (s in 1:S){
+      # normal-inverse Wishard posterior 
+      V.bar.inv              = t(aux$X)%*%diag(1/as.vector(aux$sigma2))%*%aux$X + diag(1/ diag(V.prior))
+      V.bar                  = solve(V.bar.inv)
+      A.bar                  = V.bar%*%(t(aux$X)%*%diag(1/as.vector(aux$sigma2))%*%aux$Y + diag(1/diag( V.prior))%*%A.prior) 
+      nu.bar                 = T + nu.prior
+      S.bar                  = S.prior + t(aux$Y)%*%diag(1/as.vector(aux$sigma2))%*%aux$Y + t(A.prior)%*%diag(1/diag(V.prior))%*%A.prior - t(A.bar)%*%V.bar.inv%*%A.bar 
+      S.bar.inv              = solve(S.bar)
+      S.bar.inv              = 0.5 * (t(S.bar.inv) + S.bar.inv) # positive-definite
+    
+      # posterior draws for A and Sigma
+      Sigma.posterior.IW     = rWishart(1, df=nu.bar, Sigma=S.bar.inv)
+      Sigma.posterior.draw   = apply(Sigma.posterior.IW, 3 ,solve)
+      aux$Sigma              = array(Sigma.posterior.draw,c(N,N,1))
+      A.norm                 = array(rnorm(prod(c(K,N,1))),c(K,N,1))
+      L                      = t(chol(V.bar))
+      aux$A                  = A.bar + L%*%A.norm[,,1]%*%chol(aux$Sigma[,,1])
+  
+      # posterior draw for sigma2   
+      N             = dim(aux$Y)[2] # 10
+      alpha.st      = c(1.92677,1.34744,0.73504,0.02266,0-0.85173,-1.97278,-3.46788,-5.55246,-8.68384,-14.65000)
+      sigma.st      = c(0.11265,0.17788,0.26768,0.40611,0.62699,0.98583,1.57469,2.54498,4.16591,7.33342)
+      pi.st         = c(0.00609,0.04775,0.13057,0.20674,0.22715,0.18842,0.12047,0.05591,0.01575,0.00115)
+      
+      Lambda        = solve(chol(aux$Sigma[,,1]))
+      Z             = rowSums( ( aux$Y - aux$X %*% aux$A ) %*% Lambda ) / sqrt(N)
+      Y.tilde       = as.vector(log((Z + 0.0000001)^2))
+      Ytilde.alpha  = as.matrix(Y.tilde - alpha.st[as.vector(aux$s)])
+        
+      # sampling initial condition
+      ############################################################
+      V.h0.bar      = 1/((1 / h0.v) + (1 / aux$sigma.v2))
+      m.h0.bar      = V.h0.bar*((h0.m / h0.v) + (aux$H[1] / aux$sigma.v2))
+      h0.draw       = rnorm(1, mean = m.h0.bar, sd = sqrt(V.h0.bar))
+      aux$h0        = h0.draw
+      
+      # sampling sigma.v2
+      ############################################################
+      sigma.v2.s    = sigmav.s + sum(c(aux$H[1] - aux$h0, diff(aux$H))^2)
+      sigma.v2.draw = sigma.v2.s / rchisq(1, sigmav.nu + T)
+      aux$sigma.v2  = sigma.v2.draw
+      
+      # sampling auxiliary states
+      ############################################################
+      Pr.tmp        = simplify2array(lapply(1:10,function(x){
+        dnorm(Y.tilde, mean = as.vector(aux$H + alpha.st[x]), sd = sqrt(sigma.st[x]), log = TRUE) + log(pi.st[x])
+      }))
+      Pr            = t(apply(Pr.tmp, 1, function(x){exp(x - max(x)) / sum(exp(x - max(x)))}))
+      s.cum         = t(apply(Pr, 1, cumsum))
+      r             = matrix(rep(runif(T), 10), ncol = 10)
+      ss            = apply(s.cum < r, 1, sum) + 1
+      aux$s         = as.matrix(ss)
+      
+      # sampling log-volatilities using functions for tridiagonal precision matrix
+      ############################################################
+      Sigma.s.inv   = diag(1 / sigma.st[as.vector(aux$s)])
+      D.inv         = Sigma.s.inv + (1 / aux$sigma.v2) * HH
+      b             = as.matrix(Ytilde.alpha / sigma.st[as.vector(aux$s)] + (aux$h0/aux$sigma.v2)*diag(T)[,1])
+      lead.diag     = diag(D.inv)
+      sub.diag      = mgcv::sdiag(D.inv, -1)
+      D.chol        = mgcv::trichol(ld = lead.diag, sd = sub.diag)
+      D.L           = diag(D.chol$ld)
+      mgcv::sdiag(D.L,-1) = D.chol$sd
+      x             = as.matrix(rnorm(T))
+      a             = forwardsolve(D.L, b)
+      draw          = backsolve(t(D.L), a + x)
+      aux$H         = as.matrix(draw)
+      aux$sigma2    = as.matrix(exp(draw))
+        
+      # output list
+      posteriors$H[,s]             = aux$H
+      posteriors$sigma2[,s]        = aux$sigma2
+      posteriors$s[,s]             = aux$s
+      posteriors$h0[s]             = aux$h0
+      posteriors$sigma.v2[s]       = aux$sigma.v2
+      posteriors$A[,,s]            = aux$A
+      posteriors$Sigma[,,s]        = aux$Sigma
+      
+  }
+  return(posteriors)
+}
+
+```
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+
+bvarsv = bvar_sv(Y_ts, X_ts,p)
+
+```
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+A.posterior.sv       = bvarsv[["A"]]
+Sigma.posterior.sv   = bvarsv[["Sigma"]]
+sigma2.posterior.sv = bvarsv[["sigma2"]]
+```
+
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+
+head(round(apply(A.posterior.sv, 1:2, base::mean),6))         # posterior draw A
+head(round(apply(Sigma.posterior.sv, 1:2, base::mean),6))     # posterior draw sigma
+```
+## Trace Plot
+
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+par(mfrow=c(2,2), mar=c(4,4,2,2))
+
+plot.ts(A.posterior.sv[2,1,], xlab = "Simulation times S", ylab = "CPI", col = mcxs1)
+hist(A.posterior.sv[2,1,], xlab = "CPI", col = mcxs1, main = '')
+
+plot.ts(Sigma.posterior.sv[1,1,], xlab = "Simulation times S", ylab = "CPI sigma", col = mcxs2)
+hist(Sigma.posterior.sv[1,1,], xlab = "CPI sigma", col = mcxs2, main = '')
+
+```
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+par(mfrow=c(2,2), mar=c(4,4,2,2))
+
+plot.ts(A.posterior.sv[6,5,], xlab = "Simulation times S", ylab = "Cash Rate", col = mcxs1)
+hist(A.posterior.sv[6,5,], xlab = "Cash Rate", col = mcxs1, main = '')
+
+plot.ts(Sigma.posterior.sv[5,5,], xlab = "Simulation times S", ylab = "Cash Rate sigma", col = mcxs2)
+hist(Sigma.posterior.sv[5,5,], xlab = "Cash Rate sigma", col = mcxs2, main = '')
+
+```
+
+
+## The Extended Model 3 - T-distributed error and Stochastic Volatility (BVAR-t-sv)
+
+## Computational Validity
+
+The following contains code for the estimation and a results demonstration using a bivariate Gaussian random walk data, with true parameter $A = [0_{2 \times 1} \space I_2]'$ and $\Sigma = I_2$, to demonstrate the computational validity of this method.
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+# bivariate gaussian random walk
+set.seed(123456)
+library(MASS)
+
+# Set parameters
+t <- 100  # Number of observations
+mean <- c(0, 0)  # Mean of the bi-variate normal distribution
+cov <- diag(2)  # Identity matrix of order 2 as the covariance matrix
+
+# Simulate random steps
+steps <- mvrnorm(t, mu = mean, Sigma = cov)
+
+y1 = as.matrix(cumsum(steps[,1]))
+y2 = as.matrix(cumsum(steps[,2]))
+y = cbind(y1,y2)
+
+# construct X and Y with random walk data
+p_rw = 1
+
+y  = ts(y, names=c("v1","v2"))
+
+Y_rw = y[(p_rw+1):nrow(y),]
+X_rw = matrix(1,nrow(y)-p_rw,1)
+
+for (i in 1:p_rw){
+  X_rw     = cbind(X_rw,y[(p_rw+1):nrow(y)-i,])
+}
+
+```
+
+```{r}
+#| echo: false
+#| message: true
+#| warning: false
+plot(y1, type='l',ylim=c(min(y), max(y)), col= mcxs3, ylab='', xlab='', main='Bivariate Random Walk')
+lines(y2, col= mcxs1, ylab='', xlab='')
+```
+Estimates from Standard BVAR Algorithm:
+
+```{r define}
+#| echo: true
+#| message: true
+#| warning: false
+
+rw = bvar_est(Y_rw, X_rw, p_rw)
+
+# A posterior mean
+round(rw$A.E,2)
+# Sigma posterior mean
+round(rw$Sigma.E,2)
+
+```
+Estimates from BVAR-t Algorithm:
+
+```{r}
+#| echo: true
+#| message: true
+#| warning: false
+
+rw_t = bvar_t(Y_rw, X_rw, p_rw)
+
+# A posterior mean
+apply(rw_t$A.posterior.draws, 1:2, base::mean)
+# Sigma posterior mean
+apply(rw_t$Sigma.posterior.draws, 1:2, base::mean)*mean(rw_t$lambda.posterior.draws[,1])
+
+```
+
+Estimates from BVAR-sv Algorithm:
+
+```{r}
+#| echo: true
+#| message: true
+#| warning: false
+
+rw_sv = bvar_sv(Y_rw, X_rw, p_rw)
+
+# A posterior mean
+apply(rw_sv$A, 1:2, base::mean)
+# Sigma posterior mean
+apply(rw_sv$Sigma, 1:2, base::mean)*mean(rw_sv$sigma2)
+
+```
+
+# Forecasts
+
+This section focus on a 10-quarter-ahead forecasts of Australian CPI (an indicator of inflation) and cash rate using 4 model proposed previously.
+
+## Baseline Model vs. T-distributed Error
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+
+# A posterior mean
+A.b = baseline.posterior.draws$A.posterior.draws
+Sigma.b = bvar_est(Y_ts, X_ts,p)$Sigma.posterior.draws
+
+# simulate draws from the predictive density
+# WARNING! This takes a while
+############################################################
+
+p = 4
+S = 500
+h = 10
+
+Y.h    = array(NA,c(h,N,S))
+
+###
+
+h = 10
+
+for (s in 1:S){
+  x.Ti        = Y_ts[(nrow(Y_ts)-p+1):nrow(Y_ts),]
+  x.Ti        = x.Ti[4:1,]
+  for (i in 1:h){
+    x.T         = c(1,as.vector(t(x.Ti)))
+    Y.h[i,,s]   = rmvnorm(1, mean = x.T%*%A.b[,,s], sigma=Sigma.b[,,s])
+    x.Ti        = rbind(Y.h[i,,s],x.Ti[1:3,])
+  }
+}
+
+##forecast for basic model
+
+limits.f.cpi    = range(Y.h[,1,])
+point.f.cpi     = apply(Y.h[,1,],1,mean)
+interval.f.cpi  = apply(Y.h[,1,],1,hdi,credMass=0.68)
+
+limits.f.cr    = range(Y.h[,5,])
+point.f.cr     = apply(Y.h[,5,],1,mean)
+interval.f.cr  = apply(Y.h[,5,],1,hdi,credMass=0.68)
+
+```
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+# construct X and Y with data for this paper
+
+# simulate draws from the predictive density
+# WARNING! This takes a while
+############################################################
+
+lambda.nu.prior = 5
+p = 4
+S = 500
+h = 10
+
+Y.h.t    = array(NA,c(h,N,S))
+
+for (s in 1:S){
+  x.Ti        = Y_ts[(nrow(Y_ts)-p+1):nrow(Y_ts),]
+  x.Ti        = x.Ti[4:1,]
+  for (i in 1:h){
+    lambda0 = (lambda.nu.prior-2)/rchisq(1,lambda.nu.prior)
+    x.T         = c(1,as.vector(t(x.Ti)))
+    Y.h.t[i,,s]   = rmvnorm(1, mean = x.T%*%bvart$A.posterior.draws[,,s], sigma=bvart$Sigma.posterior.draws[,,s]*lambda0)
+    x.Ti        = rbind(Y.h.t[i,,s],x.Ti[1:3,])
+  }
+}
+
+##forecasts for bvar-t model
+
+limits.f.cpi.t    = range(Y.h.t[,1,])
+point.f.cpi.t    = apply(Y.h.t[,1,],1,mean)
+interval.f.cpi.t  = apply(Y.h.t[,1,],1,hdi,credMass=0.68)
+
+limits.f.cr.t    = range(Y.h.t[,5,])
+point.f.cr.t    = apply(Y.h.t[,5,],1,mean)
+interval.f.cr.t  = apply(Y.h.t[,5,],1,hdi,credMass=0.68)
+
+```
+
+```{r}
+#####plots cpi
+
+date = c(data_trans$date[5:136],"2024-03-31","2024-06-30","2024-09-30","2024-12-31","2025-03-31","2025-06-30","2025-09-30","2025-12-31","2026-03-31","2026-06-30")
+
+par(mfrow = c(1, 1), mar = c(4, 4, 2, 1), oma = c(0, 0, 2, 0))
+
+combined_data1.cpi <- c(Y_ts[, 1], point.f.cpi)
+range_val1.cpi <- range(combined_data1.cpi, interval.f.cpi)
+
+plot(1:(nrow(Y_ts) + h), combined_data1.cpi, type = "l", ylim = range_val1.cpi, 
+     xlab = "", ylab = "", col = mcxs1, lwd = 2, 
+     main = paste("Forecast", "log_cpi"), bty = "n", xaxt = "n")
+
+lines((nrow(Y_ts) + 1):(nrow(Y_ts) + h), point.f.cpi.t, col = 'red', lwd = 2)
+axis(1, at = 1:(nrow(Y_ts) + h),labels = date, tick = TRUE, las = 2, cex.axis = 0.5)
+
+abline(v = nrow(Y_ts) + 1, col = "black")
+polygon(c((nrow(Y_ts) + 1):(nrow(Y_ts) + h), rev((nrow(Y_ts) + 1):(nrow(Y_ts) + h))),
+        c(interval.f.cpi.t[1, ], rev(interval.f.cpi.t[2, ])), col = rgb(1, 0, 0, 0.3), border = NA)
+polygon(c((nrow(Y_ts) + 1):(nrow(Y_ts) + h), rev((nrow(Y_ts) + 1):(nrow(Y_ts) + h))),
+        c(interval.f.cpi[1, ], rev(interval.f.cpi[2, ])), col = rgb(0.1, 0.4, 0.6, 0.3), border = NA)
+
+
+legend("topleft", legend = c("Base", "T-Distr"), col = c(mcxs1, "red"), lwd = 2, cex = 0.6)
+```
+
+```{r single forecast}
+####plot cr 
+
+date = c(data_trans$date[5:136],"2024-03-31","2024-06-30","2024-09-30","2024-12-31","2025-03-31","2025-06-30","2025-09-30","2025-12-31","2026-03-31","2026-06-30")
+
+par(mfrow = c(1, 1), mar = c(4, 4, 2, 1), oma = c(0, 0, 2, 0))
+
+combined_data1.cr <- c(Y_ts[, 5], point.f.cr)
+range_val1.cr <- range(combined_data1.cr, interval.f.cr)
+
+plot(1:(nrow(Y_ts) + h), combined_data1.cr, type = "l", ylim = range_val1.cr, 
+     xlab = "", ylab = "", col = mcxs1, lwd = 2, 
+     main = paste("Forecast", "Cash Rate"), bty = "n", xaxt = "n")
+
+lines((nrow(Y_ts) + 1):(nrow(Y_ts) + h), point.f.cr.t, col = 'red', lwd = 2)
+axis(1, at = 1:(nrow(Y_ts) + h),labels = date, tick = TRUE, las = 2, cex.axis = 0.5)
+
+abline(v = nrow(Y_ts) + 1, col = "black")
+polygon(c((nrow(Y_ts) + 1):(nrow(Y_ts) + h), rev((nrow(Y_ts) + 1):(nrow(Y_ts) + h))),
+        c(interval.f.cr.t[1, ], rev(interval.f.cr.t[2, ])), col = rgb(1, 0, 0, 0.3), border = NA)
+polygon(c((nrow(Y_ts) + 1):(nrow(Y_ts) + h), rev((nrow(Y_ts) + 1):(nrow(Y_ts) + h))),
+        c(interval.f.cr[1, ], rev(interval.f.cr[2, ])), col = rgb(0.1, 0.4, 0.6, 0.3), border = NA)
+
+
+legend("topleft", legend = c("Base", "T-Distr"), col = c(mcxs1, "red"), lwd = 2, cex = 0.6)
+```
+
+## Stochastic Volatility 
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+# construct X and Y with data for this paper
+
+# simulate draws from the predictive density
+# WARNING! This takes a while
+############################################################
+# forecasting sigma2 using SV
+
+p = 4
+S = 500
+h = 10
+
+
+sigma2_forecast = matrix(NA, h, S)
+ht_forecast = matrix(NA,h+1,S)
+
+for (s in 1:S) {
+  for (i in 1:h) {
+    ht_forecast[1,s] = bvarsv$H[132,i]
+    sigma2v = bvarsv$sigma.v2[i+50]
+    
+    ht_forecast[i+1,s] = rnorm(1,ht_forecast[i],sqrt(sigma2v))
+    sigma2_forecast[i,s] = exp(ht_forecast[i+1,s])
+  }
+}
+
+
+library(mvtnorm)
+
+
+Y.h.sv    = array(NA,c(h,N,S))
+
+for (s in 1:S){
+  x.Ti        = Y_ts[(nrow(Y_ts)-p+1):nrow(Y_ts),]
+  x.Ti        = x.Ti[4:1,]
+  for (i in 1:h){
+    x.T         = c(1,as.vector(t(x.Ti)))
+    Y.h.sv[i,,s]   = rmvnorm(1, mean = x.T%*%A.posterior.sv[,,s], sigma=sigma2_forecast[i,s]*Sigma.posterior.sv[,,s])
+    x.Ti        = rbind(Y.h.sv[i,,s],x.Ti[1:3,])
+  }
+}
+
+##forecasts for bvar-sv model
+
+limits.f.cpi.sv    = range(Y.h.sv[,1,])
+point.f.cpi.sv    = apply(Y.h.sv[,1,],1,mean)
+interval.f.cpi.sv  = apply(Y.h.sv[,1,],1,hdi,credMass=0.68)
+
+limits.f.cr.sv    = range(Y.h.sv[,5,])
+point.f.cr.sv    = apply(Y.h.sv[,5,],1,mean)
+interval.f.cr.sv  = apply(Y.h.sv[,5,],1,hdi,credMass=0.68)
+
+```
+
+```{r}
+#####plots cpi
+
+date = c(data_trans$date[5:136],"2024-03-31","2024-06-30","2024-09-30","2024-12-31","2025-03-31","2025-06-30","2025-09-30","2025-12-31","2026-03-31","2026-06-30")
+
+par(mfrow = c(1, 1), mar = c(4, 4, 2, 1), oma = c(0, 0, 2, 0))
+
+combined_data1.cpi <- c(Y_ts[, 1], point.f.cpi)
+range_val1.cpi <- range(combined_data1.cpi, interval.f.cpi)
+
+plot(1:(nrow(Y_ts) + h), combined_data1.cpi, type = "l", ylim = range_val1.cpi, 
+     xlab = "", ylab = "", col = mcxs1, lwd = 2, 
+     main = paste("Forecast", "log_cpi"), bty = "n", xaxt = "n")
+
+lines((nrow(Y_ts) + 1):(nrow(Y_ts) + h), point.f.cpi.sv, col = 'red', lwd = 2)
+axis(1, at = 1:(nrow(Y_ts) + h),labels = date, tick = TRUE, las = 2, cex.axis = 0.5)
+
+abline(v = nrow(Y_ts) + 1, col = "black")
+polygon(c((nrow(Y_ts) + 1):(nrow(Y_ts) + h), rev((nrow(Y_ts) + 1):(nrow(Y_ts) + h))),
+        c(interval.f.cpi.sv[1, ], rev(interval.f.cpi.sv[2, ])), col = rgb(1, 0, 0, 0.3), border = NA)
+polygon(c((nrow(Y_ts) + 1):(nrow(Y_ts) + h), rev((nrow(Y_ts) + 1):(nrow(Y_ts) + h))),
+        c(interval.f.cpi[1, ], rev(interval.f.cpi[2, ])), col = rgb(0.1, 0.4, 0.6, 0.3), border = NA)
+
+
+legend("topleft", legend = c("Base", "SV"), col = c(mcxs1, "red"), lwd = 2, cex = 0.6)
+```
+
+```{r}
+####plot cr 
+
+date = c(data_trans$date[5:136],"2024-03-31","2024-06-30","2024-09-30","2024-12-31","2025-03-31","2025-06-30","2025-09-30","2025-12-31","2026-03-31","2026-06-30")
+
+par(mfrow = c(1, 1), mar = c(4, 4, 2, 1), oma = c(0, 0, 2, 0))
+
+combined_data1.cr <- c(Y_ts[, 5], point.f.cr)
+range_val1.cr <- range(combined_data1.cr, interval.f.cr)
+
+plot(1:(nrow(Y_ts) + h), combined_data1.cr, type = "l", ylim = range_val1.cr, 
+     xlab = "", ylab = "", col = mcxs1, lwd = 2, 
+     main = paste("Forecast", "Cash Rate"), bty = "n", xaxt = "n")
+
+lines((nrow(Y_ts) + 1):(nrow(Y_ts) + h), point.f.cr.sv, col = 'red', lwd = 2)
+axis(1, at = 1:(nrow(Y_ts) + h),labels = date, tick = TRUE, las = 2, cex.axis = 0.5)
+
+abline(v = nrow(Y_ts) + 1, col = "black")
+polygon(c((nrow(Y_ts) + 1):(nrow(Y_ts) + h), rev((nrow(Y_ts) + 1):(nrow(Y_ts) + h))),
+        c(interval.f.cr.sv[1, ], rev(interval.f.cr.sv[2, ])), col = rgb(1, 0, 0, 0.3), border = NA)
+polygon(c((nrow(Y_ts) + 1):(nrow(Y_ts) + h), rev((nrow(Y_ts) + 1):(nrow(Y_ts) + h))),
+        c(interval.f.cr[1, ], rev(interval.f.cr[2, ])), col = rgb(0.1, 0.4, 0.6, 0.3), border = NA)
+
+
+legend("topleft", legend = c("Base", "SV"), col = c(mcxs1, "red"), lwd = 2, cex = 0.6)
+```
+## Stochastic Volatility and T-distributed error
 
 # References
