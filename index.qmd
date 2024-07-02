@@ -226,7 +226,7 @@ pacf(data_trans$un_em)
 
 ```
 
-## Augmented Dickey-Fuller
+## Augmented Dickey-Fuller Test
 
 The table shows the result of Augmented Dickey-Fuller test. All time series are non-stationary at 5% significance level except for cash rate in this test.
 
@@ -257,7 +257,7 @@ adf       = cbind(variable, p_value) |>
 kable(adf, digits = 4)
 ```
 
-The table shows the result of Augmented Dickey-Fuller test using the first-differenced data. All variables are integrated of order 1.
+The table shows the result of Augmented Dickey-Fuller test using the first differenced data. All variables are integrated of order 1.
 
 ```{r}
 #| echo: false
@@ -369,14 +369,14 @@ bvar_est = function(Y,X,p){
   #set parameters
   t = nrow(Y)
   N = ncol(Y) #number of variables
-  S = 500 #number of draws
+  S = 10000 #number of draws
   
   #mle
   A.hat  = solve(t(X)%*%X)%*%t(X)%*%Y
   Sigma.hat  = t(Y-X%*%A.hat)%*%(Y-X%*%A.hat)/t
   
   # minnesota prior
-  k1     = 0.02^2
+  k1     = 5
   k2     = 100
   A.prior     = matrix(0,nrow(A.hat),ncol(A.hat))
   A.prior[2:(1+N),] = diag(N)
@@ -502,7 +502,7 @@ hist(baseline.posterior.draws$Sigma.posterior.draws[5,5,], xlab = "Cash Rate sig
 
 ```
 
-## The Extended Model 1 - Student-t Distributed Error (BVAR-t)
+## The Extended Model 1 - Student-t Distributed Error (BVAR-T)
 
 The model is where $\Omega$ = $diag(\lambda_1, \lambda_2,...,\lambda_T)$. Each lambda independently drawn from an Inverse Gamma 2 distribution $IG2(\nu-2,\nu)$. This implies the distribution of error term being:
 
@@ -512,7 +512,8 @@ compared to the baseline model, the error distribution has fatter tails which ca
 
 $$Y|X,A,\Sigma \sim MN_{T \times N} (XA, \Sigma, \Omega)$$ Therefore the kernel of the likelihood function:
 
-$$L(A,\Sigma,\Omega|Y,X) \propto det(\Omega)^{-\frac{N}{2}}det(\Sigma)^{-\frac{T}{2}}exp(-\frac{1}{2}tr[\Sigma^{-1}(Y-XA)'\Omega^{-1}(Y-XA)])$$ I assume the same matrix-variate normal and inverse Wishart natural conjugate priors for $A$ and $\Sigma$. Derive the product of the likelihood function and the density function $p(A,\Sigma)$, collect corresponding terms and then we have the full conditional posterior distribution:
+$$L(A,\Sigma,\Omega|Y,X) \propto det(\Omega)^{-\frac{N}{2}}det(\Sigma)^{-\frac{T}{2}}exp(-\frac{1}{2}tr[\Sigma^{-1}(Y-XA)'\Omega^{-1}(Y-XA)])$$ 
+I assume the same matrix-variate normal and inverse Wishart natural conjugate priors for $A$ and $\Sigma$. Derive the product of the likelihood function and the density function $p(A,\Sigma)$, collect corresponding terms and then we have the full conditional posterior distribution:
 
 $$A|\Sigma = MN_{K\times N}(\bar{A},\Sigma,\bar{V})$$ $$\Sigma \sim IW_N(\bar{S},\bar{\nu})$$ where the parameters are:
 
@@ -520,7 +521,8 @@ $$\bar{V} = (X'\Omega^{-1}X + \underline{V}^{-1})^{-1}$$
 
 $$\bar{A} = \bar{V}(X'\Omega^{-1}Y + \underline{V}^{-1}\underline{A})$$ $$\bar{S} = \underline{S}+Y'\Omega^{-1}Y + \underline{A}'\underline{V}^{-1}\underline{A}-\bar{A}'\bar{V}^{-1}\bar{A}$$ $$\bar{\nu}= T + \underline{\nu}$$ To derive the full conditional posterior for $\lambda_t$, the kernel of likelihood function can be expressed as:
 
-$$L(A,\Sigma,\Omega|Y,X) \propto det(\Omega)^{-\frac{N}{2}}exp(-\frac{1}{2}tr[\Sigma^{-1}(Y-XA)'\Omega^{-1}(Y-XA)])$$ $$= (\prod^{T}_{i = 1} \lambda_t^{-\frac{N}{2}})exp({-\frac{1}{2}}{\frac{1}{\lambda_t}} \sum^{T}_{i =1}\epsilon_t' \Sigma^{-1}\epsilon_t)$$ That is for each $t$, the likelihood function is:
+$$L(A,\Sigma,\Omega|Y,X) \propto det(\Omega)^{-\frac{N}{2}}exp(-\frac{1}{2}tr[\Sigma^{-1}(Y-XA)'\Omega^{-1}(Y-XA)])$$ 
+$$= (\prod^{T}_{i = 1} \lambda_t^{-\frac{N}{2}})exp({-\frac{1}{2}}{\frac{1}{\lambda_t}} \sum^{T}_{i =1}\epsilon_t' \Sigma^{-1}\epsilon_t)$$ That is for each $t$, the likelihood function is:
 
 $$ \lambda_t^{-\frac{N}{2}}exp({-\frac{1}{2}}{\frac{1}{\lambda_t}} \epsilon_t' \Sigma^{-1}\epsilon_t)$$ The density function for $\lambda_t \sim IG2(\nu_{\lambda}-2,\nu_{\lambda})$ is:
 
@@ -559,12 +561,12 @@ lambda.nu.prior = 5
 #| message: true
 #| warning: false
 
-##Function form of BVAR_t model
+#Function form of BVAR_t model
 
 bvar_t = function(Y,X,p){
 
 # Set parameters
-S = 10000
+S =10000
 N = ncol(Y)
 t <- nrow(Y)  
 
@@ -669,7 +671,6 @@ hist(bvart$Sigma.posterior.draws[1,1,], xlab = "CPI sigma", col = mcxs2, main = 
 
 ```
 
-Notice the auto correlation parameter here is centered around 1.6 while in baseline model around 1. The difference is quite significant in level.
 
 ```{r}
 #| echo: true
@@ -689,7 +690,10 @@ hist(bvart$Sigma.posterior.draws[5,5,], xlab = "Cash Rate sigma", col = mcxs2, m
 
 For this model, the $\Omega = diag(e^{h1},e^{h2},...,e^{h_T})$, where $h_t$ follows an AR(1) process:
 
-$$h_t = h_{t-1}+\eta_t$$ where $\eta_{t} \sim N(0, \sigma^{2}_{\eta})$ and $h_0 \sim N(0, \delta^2_{\eta})$, which implies $\epsilon_{t} \sim N(0,e^{h_t} \Sigma)$.
+$$h_t = h_{t-1}+\sigma_v v_t$$ 
+where $v_{t} \sim N(0, 1)$ and $\sigma^{2}_v \sim IG2(\bar{s}, \bar{v})$, which implies:
+$$\epsilon_{t} \sim N(0,e^{h_t} \Sigma)$$
+Under this specification, $A$ and $\Sigma)$ have a similar full conditional posterior distribution to the BVAR-T model, only with $\Omega$ modified.
 
 ```{r}
 #| echo: true
@@ -717,7 +721,7 @@ bvar_sv = function (Y, X, p){
   S.prior     = diag(diag(Sigma.hat))
   nu.prior    = N+2
 
-  S = 500
+  S = 10000
   
   # aux is a list containing:
   #   Y - a TxN matrix
@@ -783,7 +787,7 @@ bvar_sv = function (Y, X, p){
       nu.bar                 = T + nu.prior
       S.bar                  = S.prior + t(aux$Y)%*%diag(1/as.vector(aux$sigma2))%*%aux$Y + t(A.prior)%*%diag(1/diag(V.prior))%*%A.prior - t(A.bar)%*%V.bar.inv%*%A.bar 
       S.bar.inv              = solve(S.bar)
-      S.bar.inv              = 0.5 * (t(S.bar.inv) + S.bar.inv) # positive-definite
+      S.bar.inv              = 0.5 * (t(S.bar.inv) + S.bar.inv) #positive-definite
     
       # posterior draws for A and Sigma
       Sigma.posterior.IW     = rWishart(1, df=nu.bar, Sigma=S.bar.inv)
@@ -926,7 +930,17 @@ hist(Sigma.posterior.sv[5,5,], xlab = "Cash Rate sigma", col = mcxs2, main = '')
 
 ## The Extended Model 3 - T-distributed error and Stochastic Volatility (BVAR-T-SV)
 
+Combining the previous 2 specification,the $\Omega = diag(e^{h1}\lambda_1,e^{h2}\lambda_2,...,e^{h_T}\lambda_T)$ and it implies:
 
+$$\epsilon_t \sim N(0, e^{t}\lambda_t\Sigma)$$
+In this case, the likelihood function is relevant to $\lambda_t$ and $h_t$:
+
+$$L(A,\Sigma,\Omega|Y,X) \propto det(\Omega)^{-\frac{N}{2}}exp(-\frac{1}{2}tr[\Sigma^{-1}(Y-XA)'\Omega^{-1}(Y-XA)])$$ 
+
+$$= (\prod^{T}_{i = 1} (e^{h_t}\lambda_t)^{-\frac{N}{2}})exp({-\frac{1}{2}}{\frac{1}{e^{h_t}\lambda_t}} \sum^{T}_{i =1}\epsilon_t' \Sigma^{-1}\epsilon_t)$$
+That is for each $t$, the likelihood function is:
+
+$$ e^{h_t}\lambda_t^{-\frac{N}{2}}exp({-\frac{1}{2}}{\frac{1}{e^{h_t}\lambda_t}} \epsilon_t' \Sigma^{-1}\epsilon_t)$$
 
 ## Computational Validity
 
@@ -976,7 +990,7 @@ lines(y2, col= mcxs1, ylab='', xlab='')
 
 Estimates from Standard BVAR Algorithm:
 
-```{r define}
+```{r}
 #| echo: true
 #| message: true
 #| warning: false
@@ -985,11 +999,8 @@ rw = bvar_est(Y_rw, X_rw, p_rw)
 
 # A posterior mean
 round(rw$A.E,2)
-# Sigma posterior mean
 round(rw$Sigma.E,2)
-
 ```
-
 Estimates from BVAR-T Algorithm:
 
 ```{r}
@@ -1023,6 +1034,8 @@ apply(rw_sv$Sigma, 1:2, base::mean)*mean(rw_sv$sigma2)
 
 ```
 
+We can see all three methods provide rather reliable estimates for $A$ and thus the point forecast will have good correspondance to data.
+
 # Forecasts
 
 This section focus on a 10-quarter-ahead forecasts of Australian CPI (an indicator of inflation) and cash rate using 4 model proposed previously.
@@ -1036,7 +1049,7 @@ This section focus on a 10-quarter-ahead forecasts of Australian CPI (an indicat
 
 # A posterior mean
 A.b = baseline.posterior.draws$A.posterior.draws
-Sigma.b = bvar_est(Y_ts, X_ts,p)$Sigma.posterior.draws
+Sigma.b = baseline.posterior.draws$Sigma.posterior.draws
 
 # simulate draws from the predictive density
 # WARNING! This takes a while
@@ -1113,6 +1126,8 @@ point.f.cr.t    = apply(Y.h.t[,5,],1,mean)
 interval.f.cr.t  = apply(Y.h.t[,5,],1,hdi,credMass=0.68)
 
 ```
+
+The point forecasts for both variables 
 
 ```{r}
 #####plots cpi
