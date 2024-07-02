@@ -10,7 +10,7 @@ bibliography: references.bib
 
 > **Abstract.** This paper forecasts Australian inflation and interest rate using Bayesian Vector Auto Regressive Model with extended features such as stochastic volatility and multivariate-t distributed error term, with the purpose of allowing time varying volatility and the error to capture sudden increases in volatility during periods with extreme events such as the COVID-19 pandemic. It is an application of such method, which is often considered as a significant improvement over a standard BVAR, to Australian macroeconomic variables to generate spot and density forecasts using post-COVID data.
 
-> **Keywords.** BVARs, Stochastic Volatility, t-distributed error, inflation, interest rate, Australian economy
+> **Keywords.** Bayesian Vector AutoRegressive Model, BVARs, Stochastic Volatility, t-distributed error, inflation, interest rate, Australian economy
 
 # Introduction
 
@@ -1312,18 +1312,6 @@ as.numeric(as.matrix(cpi.fact)[1,2])
 exp(as.matrix(point.f.cpi)[1,])
 exp(as.matrix(point.f.cpi.t)[1,])
 exp(as.matrix(point.f.cpi.sv)[1,])
-
-```
-
-```{r}
-#| echo: false
-#| message: true
-#| warning: false
-
-plot(as.matrix(cr.fact[,2]), type='l',ylim=c(2, 5), col= mcxs3, ylab='value', xlab='step', main='Bivariate Random Walk' )
-lines(as.matrix(point.f.cr)[1:3])
-lines(as.matrix(point.f.cr.t)[1:3], col = "red")
-lines(as.matrix(point.f.cr.sv)[1:3], col = "blue")
 
 ```
 
