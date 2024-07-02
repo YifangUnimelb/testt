@@ -1328,11 +1328,6 @@ cpi.fact.log = log(as.numeric(as.matrix(cpi.fact)[1,2]))
 #| message: false
 #| warning: false
 
-as.numeric(as.matrix(cpi.fact)[1,2])
-exp(as.matrix(point.f.cpi)[1,])
-exp(as.matrix(point.f.cpi.t)[1,])
-exp(as.matrix(point.f.cpi.sv)[1,])
-
 cpi_c = tibble(
   Data = c("Factual", "BVAR", "BVAR-T","BVAR-SV"),
   Value = c(as.numeric(as.matrix(cpi.fact)[1,2])
@@ -1358,10 +1353,6 @@ cr.fact <- cr.fact %>%
   mutate(Quarter = paste(year(date), quarter(date), sep = "Q")) %>%
   group_by(Quarter) %>%
   summarize(Average = mean(value, na.rm = TRUE))
-
-point.f.cr
-point.f.cr.t
-point.f.cr.sv
 ```
 
 ```{r}

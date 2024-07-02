@@ -186,7 +186,7 @@ window.Quarto = {
   <ul class="collapse">
   <li><a href="#time-series-plots" id="toc-time-series-plots" class="nav-link" data-scroll-target="#time-series-plots">Time Series Plots</a></li>
   <li><a href="#autocorrelation-function-acf-and-partial-autocorrelation-function-pacf" id="toc-autocorrelation-function-acf-and-partial-autocorrelation-function-pacf" class="nav-link" data-scroll-target="#autocorrelation-function-acf-and-partial-autocorrelation-function-pacf">Autocorrelation Function (ACF) and Partial Autocorrelation Function (PACF)</a></li>
-  <li><a href="#augmented-dickey-fuller-test" id="toc-augmented-dickey-fuller-test" class="nav-link" data-scroll-target="#augmented-dickey-fuller-test">Augmented Dickey-Fuller Test</a></li>
+  <li><a href="#augmented-dickey-fuller-test" id="toc-augmented-dickey-fuller-test" class="nav-link" data-scroll-target="#augmented-dickey-fuller-test">Augmented Dickey Fuller Test</a></li>
   </ul></li>
   <li><a href="#model" id="toc-model" class="nav-link" data-scroll-target="#model">Model</a></li>
   <li><a href="#estimation-procedure" id="toc-estimation-procedure" class="nav-link" data-scroll-target="#estimation-procedure">Estimation Procedure</a>
@@ -213,9 +213,13 @@ window.Quarto = {
   <ul class="collapse">
   <li><a href="#baseline-model-vs.-t-distributed-error" id="toc-baseline-model-vs.-t-distributed-error" class="nav-link" data-scroll-target="#baseline-model-vs.-t-distributed-error">Baseline Model vs.&nbsp;T-distributed Error</a></li>
   <li><a href="#baseline-model-vs.-stochastic-volatility" id="toc-baseline-model-vs.-stochastic-volatility" class="nav-link" data-scroll-target="#baseline-model-vs.-stochastic-volatility">Baseline Model vs.&nbsp;Stochastic Volatility</a></li>
-  <li><a href="#stochastic-volatility-and-t-distributed-error" id="toc-stochastic-volatility-and-t-distributed-error" class="nav-link" data-scroll-target="#stochastic-volatility-and-t-distributed-error">Stochastic Volatility and T-distributed error</a></li>
-  <li><a href="#comparison" id="toc-comparison" class="nav-link" data-scroll-target="#comparison">Comparison</a></li>
+  <li><a href="#forecasts-comparison" id="toc-forecasts-comparison" class="nav-link" data-scroll-target="#forecasts-comparison">Forecasts Comparison</a>
+  <ul class="collapse">
+  <li><a href="#cpi" id="toc-cpi" class="nav-link" data-scroll-target="#cpi">CPI</a></li>
+  <li><a href="#cash-rate" id="toc-cash-rate" class="nav-link" data-scroll-target="#cash-rate">Cash Rate</a></li>
   </ul></li>
+  </ul></li>
+  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">Conclusion</a></li>
   <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
   </ul>
 </nav>
@@ -307,7 +311,7 @@ window.Quarto = {
 </div>
 </section>
 <section id="augmented-dickey-fuller-test" class="level2">
-<h2 class="anchored" data-anchor-id="augmented-dickey-fuller-test">Augmented Dickey-Fuller Test</h2>
+<h2 class="anchored" data-anchor-id="augmented-dickey-fuller-test">Augmented Dickey Fuller Test</h2>
 <p>The table shows the result of Augmented Dickey-Fuller test. All time series are non-stationary at 5% significance level except for cash rate in this test.</p>
 <div class="cell">
 <div class="cell-output-display">
@@ -521,12 +525,12 @@ p(A,\Sigma) &amp;\propto  \det(\Sigma)^{-\frac{N+K+\underline{v}+1}{2}} \\
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">round</span>(<span class="fu">apply</span>(baseline.posterior.draws<span class="sc">$</span>A.posterior.draws,<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>,base<span class="sc">::</span>mean),<span class="dv">6</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>          [,1]      [,2]      [,3]      [,4]      [,5]      [,6]
-[1,]  0.030588  0.069612 -0.050546  0.192921  2.135449 -1.164170
-[2,]  0.991504 -0.016555  0.011774 -0.037584 -0.116527  0.721102
-[3,]  0.000326  1.000321  0.003650  0.005436  0.030707 -0.279039
-[4,]  0.004409 -0.000209  1.005313  0.002734 -0.100469 -0.050220
-[5,] -0.002653  0.009590 -0.034964  1.022489  0.315656 -0.338664
-[6,]  0.005281 -0.002792 -0.015064 -0.000719  1.559784 -0.149985</code></pre>
+[1,]  0.030626  0.069606 -0.045241  0.196977  2.089513 -1.160189
+[2,]  0.991707 -0.016549  0.011426 -0.037019 -0.117729  0.711609
+[3,]  0.000249  1.000479  0.003573  0.005744  0.035307 -0.277785
+[4,]  0.004468  0.000066  1.005247  0.003535 -0.099197 -0.051403
+[5,] -0.002675  0.009302 -0.034879  1.022107  0.309952 -0.337139
+[6,]  0.005276 -0.002776 -0.015232 -0.000551  1.559531 -0.149462</code></pre>
 </div>
 </div>
 <p>Mean matrix <span class="math inline">\(\Sigma\)</span>:</p>
@@ -534,12 +538,12 @@ p(A,\Sigma) &amp;\propto  \det(\Sigma)^{-\frac{N+K+\underline{v}+1}{2}} \\
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">round</span>(<span class="fu">apply</span>(baseline.posterior.draws<span class="sc">$</span>Sigma.posterior.draws,<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>,base<span class="sc">::</span>mean),<span class="dv">6</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>          [,1]      [,2]      [,3]      [,4]      [,5]      [,6]
-[1,]  0.000028  0.000016 -0.000016  0.000030  0.000371 -0.000488
-[2,]  0.000016  0.000092 -0.000022  0.000051  0.000544 -0.001237
-[3,] -0.000016 -0.000022  0.000525 -0.000104 -0.002371  0.000599
-[4,]  0.000030  0.000051 -0.000104  0.001195  0.004172 -0.001240
-[5,]  0.000371  0.000544 -0.002371  0.004172  0.082557 -0.015152
-[6,] -0.000488 -0.001237  0.000599 -0.001240 -0.015152  0.055273</code></pre>
+[1,]  0.000028  0.000016 -0.000016  0.000030  0.000369 -0.000487
+[2,]  0.000016  0.000092 -0.000022  0.000051  0.000537 -0.001232
+[3,] -0.000016 -0.000022  0.000525 -0.000105 -0.002380  0.000600
+[4,]  0.000030  0.000051 -0.000105  0.001193  0.004169 -0.001237
+[5,]  0.000369  0.000537 -0.002380  0.004169  0.082604 -0.015063
+[6,] -0.000487 -0.001232  0.000600 -0.001237 -0.015063  0.055229</code></pre>
 </div>
 </div>
 </section>
@@ -686,24 +690,24 @@ p(A,\Sigma) &amp;\propto  \det(\Sigma)^{-\frac{N+K+\underline{v}+1}{2}} \\
 <div class="cell">
 <div class="cell-output cell-output-stdout">
 <pre><code>          [,1]      [,2]      [,3]      [,4]      [,5]      [,6]
-[1,]  0.081699  0.190366 -0.171538  0.508230  5.752240 -2.469970
-[2,]  0.980750 -0.039706  0.029540 -0.075519 -0.035073  1.791398
-[3,] -0.000507  0.994973 -0.000758 -0.006286 -0.152862 -0.741610
-[4,]  0.010254  0.003261  1.026955  0.012010 -0.055334 -0.177152
-[5,] -0.002719  0.016973 -0.054830  1.091127  0.716991 -0.623365
-[6,]  0.005854 -0.003926 -0.013141 -0.003199  1.599179 -0.157371</code></pre>
+[1,]  0.080256  0.193781 -0.174144  0.509220  5.647447 -2.557839
+[2,]  0.980399 -0.039892  0.030185 -0.075348 -0.038113  1.785887
+[3,] -0.000425  0.995506 -0.001398 -0.004922 -0.127035 -0.746150
+[4,]  0.010239  0.003480  1.026719  0.013330 -0.047067 -0.180517
+[5,] -0.002548  0.017454 -0.054412  1.091824  0.722904 -0.632265
+[6,]  0.005847 -0.003977 -0.013280 -0.003554  1.597555 -0.156624</code></pre>
 </div>
 </div>
 <p>Mean matrix <span class="math inline">\(\Sigma\)</span>:</p>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
 <pre><code>          [,1]      [,2]      [,3]      [,4]      [,5]      [,6]
-[1,]  0.000096  0.000054 -0.000056  0.000100  0.001224 -0.001662
-[2,]  0.000054  0.000317 -0.000078  0.000163  0.001933 -0.004268
-[3,] -0.000056 -0.000078  0.001834 -0.000347 -0.008125  0.001911
-[4,]  0.000100  0.000163 -0.000347  0.004125  0.013988 -0.003713
-[5,]  0.001224  0.001933 -0.008125  0.013988  0.275236 -0.047472
-[6,] -0.001662 -0.004268  0.001911 -0.003713 -0.047472  0.184868</code></pre>
+[1,]  0.000096  0.000054 -0.000055  0.000100  0.001230 -0.001661
+[2,]  0.000054  0.000317 -0.000078  0.000162  0.001957 -0.004268
+[3,] -0.000055 -0.000078  0.001831 -0.000352 -0.008120  0.001899
+[4,]  0.000100  0.000162 -0.000352  0.004133  0.014024 -0.003685
+[5,]  0.001230  0.001957 -0.008120  0.014024  0.275730 -0.047804
+[6,] -0.001661 -0.004268  0.001899 -0.003685 -0.047804  0.184662</code></pre>
 </div>
 </div>
 </section>
@@ -916,24 +920,24 @@ p(A,\Sigma) &amp;\propto  \det(\Sigma)^{-\frac{N+K+\underline{v}+1}{2}} \\
 <div class="cell">
 <div class="cell-output cell-output-stdout">
 <pre><code>          [,1]      [,2]      [,3]      [,4]      [,5]      [,6]
-[1,]  0.002085  0.003419  0.002328  0.007561  0.212540 -0.167181
-[2,]  0.999737 -0.000222  0.000250 -0.002167 -0.015508  0.044349
-[3,]  0.000630  1.001283  0.002075  0.001691  0.057612 -0.053838
-[4,] -0.000249 -0.002161  0.997878 -0.000374 -0.075091  0.070885
-[5,]  0.000114 -0.000107 -0.002165  0.995206  0.031635 -0.009060
-[6,]  0.001792 -0.000306 -0.007463  0.000560  1.183309 -0.045868</code></pre>
+[1,]  0.002283  0.003327  0.002904  0.007714  0.215520 -0.179313
+[2,]  0.999699 -0.000161  0.000226 -0.002292 -0.015122  0.045113
+[3,]  0.000625  1.001280  0.002289  0.002328  0.055003 -0.056923
+[4,] -0.000229 -0.002201  0.997678 -0.001372 -0.073816  0.076196
+[5,]  0.000127 -0.000023 -0.001808  0.995498  0.027719 -0.009272
+[6,]  0.001836 -0.000285 -0.007554  0.000437  1.186747 -0.043034</code></pre>
 </div>
 </div>
 <p>Mean matrix <span class="math inline">\(\sigma\)</span>:</p>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
-<pre><code>         [,1]   [,2]     [,3]     [,4]      [,5]      [,6]
-[1,]  1.0e-06  0e+00 -1.0e-06  0.0e+00  0.000007 -0.000013
-[2,]  0.0e+00  2e-06  0.0e+00  0.0e+00  0.000005 -0.000020
-[3,] -1.0e-06  0e+00  1.4e-05 -2.0e-06 -0.000070  0.000013
-[4,]  0.0e+00  0e+00 -2.0e-06  4.5e-05  0.000014 -0.000073
-[5,]  7.0e-06  5e-06 -7.0e-05  1.4e-05  0.003241 -0.000807
-[6,] -1.3e-05 -2e-05  1.3e-05 -7.3e-05 -0.000807  0.002275</code></pre>
+<pre><code>         [,1]     [,2]     [,3]     [,4]      [,5]      [,6]
+[1,]  1.0e-06  0.0e+00 -1.0e-06  0.0e+00  0.000008 -0.000013
+[2,]  0.0e+00  2.0e-06  0.0e+00  0.0e+00  0.000005 -0.000018
+[3,] -1.0e-06  0.0e+00  1.4e-05 -2.0e-06 -0.000071  0.000011
+[4,]  0.0e+00  0.0e+00 -2.0e-06  4.7e-05  0.000014 -0.000077
+[5,]  8.0e-06  5.0e-06 -7.1e-05  1.4e-05  0.003330 -0.000791
+[6,] -1.3e-05 -1.8e-05  1.1e-05 -7.7e-05 -0.000791  0.002300</code></pre>
 </div>
 </div>
 </section>
@@ -1062,7 +1066,7 @@ p(A,\Sigma) &amp;\propto  \det(\Sigma)^{-\frac{N+K+\underline{v}+1}{2}} \\
 <p>This section focus on a 10-quarter-ahead forecasts of Australian CPI (an indicator of inflation) and cash rate using 4 model proposed previously.</p>
 <section id="baseline-model-vs.-t-distributed-error" class="level2">
 <h2 class="anchored" data-anchor-id="baseline-model-vs.-t-distributed-error">Baseline Model vs.&nbsp;T-distributed Error</h2>
-<p>The point forecasts for both variables</p>
+<p>The point forecasts for both variables are very similar from baseline model and BVAR-T. While the 68% predictive density interval from BVAR-T is visibly wider due to the fat tail property. The results suggest CPI will follow its increasing trend. For cash rate, after the sudden spike, is predicted to drop quite soon. These forecasts suits the data properties well as CPI has a steady trend over the data window while cash rate is a fluctuating line.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div>
@@ -1084,6 +1088,7 @@ p(A,\Sigma) &amp;\propto  \det(\Sigma)^{-\frac{N+K+\underline{v}+1}{2}} \\
 </section>
 <section id="baseline-model-vs.-stochastic-volatility" class="level2">
 <h2 class="anchored" data-anchor-id="baseline-model-vs.-stochastic-volatility">Baseline Model vs.&nbsp;Stochastic Volatility</h2>
+<p>The BVAR-SV model forecasts deviate from the baseline by a significant margin, visually evident in the cash rate forecasts. It predict a much slower decrease than the other two models.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div>
@@ -1103,51 +1108,45 @@ p(A,\Sigma) &amp;\propto  \det(\Sigma)^{-\frac{N+K+\underline{v}+1}{2}} \\
 </div>
 </div>
 </section>
-<section id="stochastic-volatility-and-t-distributed-error" class="level2">
-<h2 class="anchored" data-anchor-id="stochastic-volatility-and-t-distributed-error">Stochastic Volatility and T-distributed error</h2>
+<section id="forecasts-comparison" class="level2">
+<h2 class="anchored" data-anchor-id="forecasts-comparison">Forecasts Comparison</h2>
+<section id="cpi" class="level3">
+<h3 class="anchored" data-anchor-id="cpi">CPI</h3>
+<p>There is only one quarterly data point available for comparison purpose. The factual and forecast values are presented and counter intuitively, the baseline model forecast is closest to true value, which is higher than all te forecast values. The reason behind this is possibly some abnormal economic activity after the COVID period, such as “greedflation”, where corporations ride the inflation trend to further raise the price. This is worthy of future investigation.</p>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;">Data</th>
+<th style="text-align: right;">Value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Factual</td>
+<td style="text-align: right;">137.4000</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">BVAR</td>
+<td style="text-align: right;">137.3314</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">BVAR-T</td>
+<td style="text-align: right;">137.3315</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">BVAR-SV</td>
+<td style="text-align: right;">137.1805</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </section>
-<section id="comparison" class="level2">
-<h2 class="anchored" data-anchor-id="comparison">Comparison</h2>
-<div class="cell">
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 4.922896</code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 4.922156</code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 4.921215</code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 4.921428</code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 137.4</code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 137.2984</code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 137.1692</code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 137.1984</code></pre>
-</div>
-</div>
-<div class="cell">
-<div class="cell-output cell-output-stdout">
-<pre><code> [1] 4.0643553 3.6852052 3.2326636 2.7717337 2.3291554 1.9356128 1.5530209
- [8] 1.2292997 0.9478442 0.6947910</code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code> [1] 4.0870994 3.6940574 3.2224409 2.7544857 2.3021669 1.8939170 1.5411311
- [8] 1.2258194 0.9744933 0.7399122</code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code> [1] 4.278421 4.251781 4.181244 4.084218 3.974353 3.844592 3.703908 3.555832
- [9] 3.400267 3.241062</code></pre>
-</div>
-</div>
+<section id="cash-rate" class="level3">
+<h3 class="anchored" data-anchor-id="cash-rate">Cash Rate</h3>
+<p>The figure clearly show that the BVAR-SV forecasts are the most accurate to reality.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div>
@@ -1158,6 +1157,11 @@ p(A,\Sigma) &amp;\propto  \det(\Sigma)^{-\frac{N+K+\underline{v}+1}{2}} \\
 </div>
 </div>
 </section>
+</section>
+</section>
+<section id="conclusion" class="level1">
+<h1>Conclusion</h1>
+<p>In this paper, we implement 3 Bayesian Auto Regressive Models: the standard BVAR, the t-distributed error BVAR-T and the stochastic volatility BVAR-SV to forecast Australian Consumer Price Index and cash rate. All models predict increasing CPI following its existing trend, and decreasing cash rate after its sudden spike during COVID-19 period. The differences among these models are most evidently in cash rate forecasts. BVAR-SV forecasts a much less drastic decrease compared to the other ones, being more accurate to the true value.</p>
 </section>
 <section id="references" class="level1">
 
