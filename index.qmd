@@ -14,11 +14,12 @@ bibliography: references.bib
 
 # Introduction
 
-**Objective:** This paper aims to forecast Australian short term interest rate (cash rate target) and inflation. It follows the method in Hartwig(2022), using a BVAR model with multiple specifications for its error covariance matrix, such as it being multivariate-t distributed, following a stochastic process or a combination of both.
+**Objective:** This paper aims to forecast Australian short term interest rate (cash rate target) and inflation. It follows the method in @hartwig2022, using a BVAR model with multiple specifications for its error covariance matrix, such as it being multivariate-t distributed, following a stochastic process or a combination of both.
 
 **Question:** Can the model suggested produce reliable spot and density forecasts for Australian inflation and interest rate?
 
-**Motivation:** Volatility variation across time in macroeconomic variables is widely explored in literature (Bloom,2014), which the standard Gaussian error modeling may fail to capture and then leads to unreliable results. Hartwig(2022) suggests that several BVAR models with modified volatility distribution which differentiate from the standard Gaussian perform better under likelihood measurement. The best fitting one with post-COVID19 data is BVAR-t-SV. The stochastic process captures the time persistence of volatility, which is evident in variables such as short term interest rate(Ball and Torous,1999). A multivariate-t distributed error, with relatively fatter tails, can recognize some extreme volatility as temporary spikes instead of persistent effect. The forecast focus on inflation and interest rate due to their strong relevance to policy making and people's daily lives. Many challenges arise post-COVID for government to facilitate the revitalization of the economy, where forecast plays its roles. This research contributes to the existing literature by applying the forecasting method tested to fit the post-COVID data in other countries in Australian economy to facilitate better predictions.
+**Motivation:** Volatility variation across time in macroeconomic variables is widely explored in literature (@bloom2014), which the standard Gaussian error modeling may fail to capture and then leads to unreliable results. @hartwig2022 suggests that several BVAR models with modified volatility distribution which differentiate from the standard Gaussian perform better under likelihood measurement. The best fitting one with post-COVID19 data is BVAR-T-SV. The stochastic process captures the time persistence of volatility, which is evident in variables such as short term interest rate(@ball1999). A multivariate-t distributed error, with relatively fatter tails, can recognize some extreme volatility as temporary spikes instead of persistent effect. The forecast focus on inflation and interest rate due to their strong relevance to policy making and people's daily lives. Many challenges arise post-COVID for government to facilitate the revitalization of the economy, where forecast plays its roles. This research contributes to the existing literature by applying the forecasting method tested to fit the post-COVID data in other countries in Australian economy to facilitate better predictions.
+
 
 # Data
 
@@ -36,7 +37,7 @@ All data is obtained from RBA. Daily or monthly data is converted to quarterly f
 
 **Unemployment:** Unemployment rate in percentage (series_id:GLFSUPSA)
 
-The data window covers 1990 Q1 to 2023 Q4, as the most up-to-date post-COVID data in Australia, similar to Hartwig(2022). Cash rate, real GDP and unemployment rate are standard to be included forecasting inflation as the cyclical variables(eg.Stock and Watson(1999)). Money aggregate is a supply side driver for commodity price (eg. Dhakal et al(1994)). The exchange rate AUD/USD captures the prices trading with Australia's biggest international trading partner.
+The data window covers 1990 Q1 to 2023 Q4, as the most up-to-date post-COVID data in Australia, similar to @hartwig2022. Cash rate, real GDP and unemployment rate are standard to be included forecasting inflation as the cyclical variables(e.g. @stock1999 ). Money aggregate is a supply side driver for commodity price (e.g. @dhakal1994). The exchange rate AUD/USD captures the prices trading with Australia's biggest international trading partner.
 
 ```{r}
 #| echo: false
@@ -275,7 +276,7 @@ cbind(variable, p_value) |>
 
 # Model
 
-Here presents the Bayesian VAR in the general form of a VAR(p):
+The model and notations are based on @tomasz2016 .Here presents the Bayesian VAR in the general form of a VAR(p):
 
 $$y_t = a_0 +A_1y_{t-1}+...+A_py_{t-p}+ \epsilon_t $$
 
@@ -862,6 +863,7 @@ bvar_sv = function (Y, X, p){
 #| echo: false
 #| message: false
 #| warning: false
+
 
 bvarsv = bvar_sv(Y_ts, X_ts,p)
 
