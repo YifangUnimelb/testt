@@ -226,7 +226,7 @@ pacf(data_trans$un_em)
 
 ```
 
-## Augmented Dickey-Fuller Test
+## Augmented Dickey Fuller Test
 
 The table shows the result of Augmented Dickey-Fuller test. All time series are non-stationary at 5% significance level except for cash rate in this test.
 
@@ -1056,7 +1056,7 @@ Sigma.b = baseline.posterior.draws$Sigma.posterior.draws
 ############################################################
 
 p = 4
-S = 500
+S = 10000
 h = 10
 
 Y.h    = array(NA,c(h,N,S))
@@ -1127,7 +1127,8 @@ interval.f.cr.t  = apply(Y.h.t[,5,],1,hdi,credMass=0.68)
 
 ```
 
-The point forecasts for both variables 
+The point forecasts for both variables are very similar from baseline model and BVAR-T. While the 68% predictive density interval from BVAR-T is visibly wider due to the fat tail property. The results suggest CPI will follow its increasing trend. For cash rate, after the sudden spike, is predicted to drop quite soon. These forecasts suits the data properties well as CPI has a steady trend over the data window while cash rate is a fluctuating line. 
+
 
 ```{r}
 #####plots cpi
@@ -1242,6 +1243,8 @@ interval.f.cr.sv  = apply(Y.h.sv[,5,],1,hdi,credMass=0.68)
 
 ```
 
+The BVAR-SV model forecasts deviate from the baseline by a significant margin, visually evident in the cash rate forecasts. It predict a much slower decrease than the other two models.
+
 ```{r}
 #####plots cpi
 
@@ -1296,9 +1299,11 @@ polygon(c((nrow(Y_ts) + 1):(nrow(Y_ts) + h), rev((nrow(Y_ts) + 1):(nrow(Y_ts) + 
 legend("topleft", legend = c("Base", "SV"), col = c(mcxs1, "red"), lwd = 2, cex = 0.6)
 ```
 
-## Stochastic Volatility and T-distributed error
+## Forecasts Comparison 
 
-## Comparison 
+### CPI
+
+There is only one quarterly data point available for comparison purpose. The factual and forecast values are presented and counter intuitively, the baseline model forecast is closest to true value, which is higher than all te forecast values. The reason behind this is possibly some abnormal economic activity after the COVID period, such as "greedflation", where corporations ride the inflation trend to further raise the price. This is worthy of future investigation.
 
 ```{r}
 #| echo: false
@@ -1314,23 +1319,33 @@ cpi.fact <- cpi.fact %>%
 
 cpi.fact.log = log(as.numeric(as.matrix(cpi.fact)[1,2]))
 
+
+
 ```
+
 ```{r}
 #| echo: false
-#| message: true
+#| message: false
 #| warning: false
-
-cpi.fact.log
-as.matrix(point.f.cpi)[1,]
-as.matrix(point.f.cpi.t)[1,]
-as.matrix(point.f.cpi.sv)[1,]
 
 as.numeric(as.matrix(cpi.fact)[1,2])
 exp(as.matrix(point.f.cpi)[1,])
 exp(as.matrix(point.f.cpi.t)[1,])
 exp(as.matrix(point.f.cpi.sv)[1,])
 
+cpi_c = tibble(
+  Data = c("Factual", "BVAR", "BVAR-T","BVAR-SV"),
+  Value = c(as.numeric(as.matrix(cpi.fact)[1,2])
+, exp(as.matrix(point.f.cpi)[1,]), exp(as.matrix(point.f.cpi.t)[1,]),exp(as.matrix(point.f.cpi.sv)[1,])),
+)
+
+kable(cpi_c, digits = 4)
+
 ```
+
+### Cash Rate
+
+The figure clearly show that the BVAR-SV forecasts are the most accurate to reality.
 
 ```{r}
 #| echo: false
@@ -1363,6 +1378,10 @@ legend("bottomleft", legend = c("Fact","Base", "T-Distr", "SV"),lty = c(1,2,1,1)
 
 
 ```
+
+# Conclusion
+
+In this paper, we implement 3 Bayesian Auto Regressive Models: the standard BVAR, the t-distributed error BVAR-T and the stochastic volatility BVAR-SV to forecast Australian Consumer Price Index and cash rate. All models predict increasing CPI following its existing trend, and decreasing cash rate after its sudden spike during COVID-19 period. The differences among these models are most evidently in cash rate forecasts. BVAR-SV forecasts a much less drastic decrease compared to the other ones, being more accurate to the true value.
 
 
 # References
